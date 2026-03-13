@@ -6,7 +6,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:;">
 <title>Simple Pension Calculator — Free Private UK Retirement Planner</title>
 <meta name="description" content="Free UK pension calculator using 2024/25 tax bands. Model pensions, ISAs, LISAs, GIAs, and defined benefit schemes. Compare drawdown vs annuity income with income tax and CGT estimates. Plan for couples. 100% private — no sign-up, no data leaves your browser.">
-<meta name="keywords" content="pension calculator UK, retirement planner UK, drawdown calculator, annuity calculator, ISA calculator, LISA calculator, UK retirement income, pension tax calculator, couple retirement planning, private pension calculator, defined benefit pension, 4% rule calculator">
+<meta name="keywords" content="pension calculator UK, retirement planner UK, SIPP calculator, drawdown calculator, annuity calculator, ISA calculator, LISA calculator, UK retirement income, pension tax calculator, couple retirement planning, private pension calculator, defined benefit pension, 4% rule calculator, workplace pension calculator">
 <link rel="canonical" href="https://simplepensioncalculator.co.uk/">
 <meta property="og:title" content="Simple Pension Calculator — Free Private UK Retirement Planner">
 <meta property="og:description" content="Free UK pension calculator with 2024/25 tax bands. Model pensions, ISAs, LISAs, GIAs, and DB schemes. 100% private — nothing leaves your browser.">
@@ -1502,7 +1502,7 @@ h1 {
   <h3 id="addPotFormTitle">Add a new pension</h3>
   <div class="form-field">
     <label for="newPotName">Name</label>
-    <input type="text" id="newPotName" placeholder="e.g. Workplace pension">
+    <input type="text" id="newPotName" placeholder="e.g. Workplace pension or SIPP">
   </div>
   <div class="form-field">
     <label for="newPotValue">Current value (£)</label>
@@ -2227,7 +2227,7 @@ const addCashIsaBtn = document.getElementById('addCashIsaBtn');
 const addPremiumBondsBtn = document.getElementById('addPremiumBondsBtn');
 
 const formConfig = {
-  pension: { title: 'Add a new pension', placeholder: 'e.g. Workplace pension' },
+  pension: { title: 'Add a new pension', placeholder: 'e.g. Workplace pension or SIPP' },
   isa: { title: 'Add a new S&S ISA', placeholder: 'e.g. Vanguard S&S ISA' },
   'gia': { title: 'Add a General Investment Account', placeholder: 'e.g. Hargreaves Lansdown GIA' },
   'cash-isa': { title: 'Add a new Cash ISA', placeholder: 'e.g. Marcus Cash ISA' },
