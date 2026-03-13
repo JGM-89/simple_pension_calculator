@@ -1384,6 +1384,7 @@ function openAddForm(type) {
   const cfg = formConfig[type] || { title: 'Add a new pot', placeholder: '' };
   document.getElementById('addPotFormTitle').textContent = cfg.title;
   document.getElementById('newPotName').placeholder = cfg.placeholder;
+  document.querySelector('label[for="newPotValue"]').textContent = type === 'db-pension' ? 'Expected annual income (£/yr)' : 'Current value (£)';
   document.getElementById('newPotName').focus();
 }
 
