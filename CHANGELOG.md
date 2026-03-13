@@ -13,6 +13,7 @@
 - **SIPP as separate pot type** — SIPPs now have their own "+ Add SIPP" button with a personal contribution field only (no employer contributions or salary percentage toggle), while sharing the same tax treatment, 25% lump sum, and annuity rates as workplace pensions
 
 ### Improvements
+- **DB accrual rates corrected and expanded** — fixed mislabelled rates (1/57th is Teachers not NHS, 1/43rd is Civil Service not Teachers), added missing 1/54th NHS 2015 rate, and added "Custom…" option for non-standard accrual rates
 - **Expanded add-pot form** — contributions, interest rates, and DB calculator now available when creating a pot (not just after editing). Pensions get £/% toggle with employee/employer fields, DB pensions get the full service-years calculator, cash ISAs/premium bonds get rate fields
 - **PLSA bar syncs with inflation toggle** — thresholds inflate to nominal when toggle is off, deflate when on, so numbers always match surrounding income figures. Note explains "(PLSA thresholds inflated to match)" in nominal mode
 - **After-tax colour reflects PLSA level** — green (Comfortable), amber (Moderate), red (Minimum/below) across totals row, drawdown tab, and annuity tab

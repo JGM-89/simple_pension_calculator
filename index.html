@@ -1998,12 +1998,15 @@ function renderPots() {
             <div class="db-helper-field">
               <label>Accrual rate</label>
               <select class="db-helper-accrual" data-index="${i}">
-                <option value="60" ${(pot.dbAccrual || 60) === 60 ? 'selected' : ''}>1/60th</option>
-                <option value="80" ${pot.dbAccrual === 80 ? 'selected' : ''}>1/80th</option>
-                <option value="49" ${pot.dbAccrual === 49 ? 'selected' : ''}>1/49th (CARE)</option>
-                <option value="57" ${pot.dbAccrual === 57 ? 'selected' : ''}>1/57th (NHS)</option>
-                <option value="43" ${pot.dbAccrual === 43 ? 'selected' : ''}>1/43rd (Teachers)</option>
+                <option value="80" ${pot.dbAccrual === 80 ? 'selected' : ''}>1/80th (legacy)</option>
+                <option value="60" ${(pot.dbAccrual || 60) === 60 ? 'selected' : ''}>1/60th (final salary)</option>
+                <option value="57" ${pot.dbAccrual === 57 ? 'selected' : ''}>1/57th (Teachers 2015)</option>
+                <option value="54" ${pot.dbAccrual === 54 ? 'selected' : ''}>1/54th (NHS 2015)</option>
+                <option value="49" ${pot.dbAccrual === 49 ? 'selected' : ''}>1/49th (LGPS 2014)</option>
+                <option value="43" ${pot.dbAccrual === 43 ? 'selected' : ''}>1/43rd (Civil Service α)</option>
+                <option value="custom" ${pot.dbAccrual && ![80,60,57,54,49,43].includes(pot.dbAccrual) ? 'selected' : ''}>Custom…</option>
               </select>
+              <input type="number" min="1" max="200" step="0.1" class="db-helper-custom-accrual" data-index="${i}" placeholder="e.g. 55" value="${pot.dbAccrual && ![80,60,57,54,49,43].includes(pot.dbAccrual) ? pot.dbAccrual : ''}" style="display:${pot.dbAccrual && ![80,60,57,54,49,43].includes(pot.dbAccrual) ? 'block' : 'none'};margin-top:4px;width:100%">
             </div>
           </div>
           <div class="db-helper-row">
@@ -2208,11 +2211,25 @@ function renderPots() {
   });
 
   // DB helper calculate button
+  // Show/hide custom accrual input when select changes
+  qAll('.db-helper-accrual').forEach(sel => {
+    sel.addEventListener('change', e => {
+      const idx = e.target.dataset.index;
+      const customInput = qOne(`.db-helper-custom-accrual[data-index="${idx}"]`);
+      if (customInput) {
+        customInput.style.display = e.target.value === 'custom' ? 'block' : 'none';
+        if (e.target.value === 'custom') customInput.focus();
+      }
+    });
+  });
+
   qAll('.db-helper-btn').forEach(btn => {
     btn.addEventListener('click', e => {
       const idx = e.target.dataset.index;
       const years = parseFloat(qOne(`.db-helper-years[data-index="${idx}"]`).value) || 0;
-      const accrual = parseInt(qOne(`.db-helper-accrual[data-index="${idx}"]`).value) || 60;
+      const selVal = qOne(`.db-helper-accrual[data-index="${idx}"]`).value;
+      const customInput = qOne(`.db-helper-custom-accrual[data-index="${idx}"]`);
+      const accrual = selVal === 'custom' ? (parseFloat(customInput.value) || 60) : (parseInt(selVal) || 60);
       const salary = parseFloat(qOne(`.db-helper-salary[data-index="${idx}"]`).value) || 0;
       const income = Math.round((years / accrual) * salary);
       pots[idx].dbIncome = income;
@@ -2329,12 +2346,15 @@ function openAddForm(type, owner) {
           <div class="db-helper-field">
             <label>Accrual rate</label>
             <select id="newPotDbAccrual">
-              <option value="60" selected>1/60th</option>
-              <option value="80">1/80th</option>
-              <option value="49">1/49th (CARE)</option>
-              <option value="57">1/57th (NHS)</option>
-              <option value="43">1/43rd (Teachers)</option>
+              <option value="80">1/80th (legacy)</option>
+              <option value="60" selected>1/60th (final salary)</option>
+              <option value="57">1/57th (Teachers 2015)</option>
+              <option value="54">1/54th (NHS 2015)</option>
+              <option value="49">1/49th (LGPS 2014)</option>
+              <option value="43">1/43rd (Civil Service α)</option>
+              <option value="custom">Custom…</option>
             </select>
+            <input type="number" min="1" max="200" step="0.1" id="newPotDbCustomAccrual" placeholder="e.g. 55" style="display:none;margin-top:4px;width:100%">
           </div>
         </div>
         <div class="db-helper-row">
@@ -2392,9 +2412,16 @@ function openAddForm(type, owner) {
     document.getElementById('newPotDbHelperToggle').addEventListener('click', () => {
       document.getElementById('newPotDbHelper').classList.toggle('open');
     });
+    document.getElementById('newPotDbAccrual').addEventListener('change', e => {
+      const customInput = document.getElementById('newPotDbCustomAccrual');
+      customInput.style.display = e.target.value === 'custom' ? 'block' : 'none';
+      if (e.target.value === 'custom') customInput.focus();
+    });
     document.getElementById('newPotDbCalcBtn').addEventListener('click', () => {
       const years = parseFloat(document.getElementById('newPotDbYears').value) || 0;
-      const accrual = parseInt(document.getElementById('newPotDbAccrual').value) || 60;
+      const selVal = document.getElementById('newPotDbAccrual').value;
+      const customInput = document.getElementById('newPotDbCustomAccrual');
+      const accrual = selVal === 'custom' ? (parseFloat(customInput.value) || 60) : (parseInt(selVal) || 60);
       const salary = parseFloat(document.getElementById('newPotDbSalary').value) || 0;
       const income = Math.round((years / accrual) * salary);
       document.getElementById('newPotValue').value = income;
@@ -2452,7 +2479,11 @@ submitPotBtn.addEventListener('click', () => {
     const accrualEl = document.getElementById('newPotDbAccrual');
     const salaryEl = document.getElementById('newPotDbSalary');
     if (yearsEl && parseFloat(yearsEl.value)) newPot.dbYears = parseFloat(yearsEl.value);
-    if (accrualEl) newPot.dbAccrual = parseInt(accrualEl.value) || 60;
+    if (accrualEl) {
+      const selVal = accrualEl.value;
+      const customAccrualEl = document.getElementById('newPotDbCustomAccrual');
+      newPot.dbAccrual = selVal === 'custom' ? (parseFloat(customAccrualEl.value) || 60) : (parseInt(selVal) || 60);
+    }
     if (salaryEl && parseFloat(salaryEl.value)) newPot.dbSalary = parseFloat(salaryEl.value);
   }
 
