@@ -1763,6 +1763,18 @@ function realLabel() {
   return showReal ? " (today's money)" : '';
 }
 
+function getPlsaColor(afterTaxIncome, years, isCouple) {
+  const deflator = Math.pow(1 + INFLATION_RATE, years);
+  const showReal = document.getElementById('inflationToggle') && document.getElementById('inflationToggle').checked;
+  const bComf = (isCouple ? PLSA_COUPLE_COMFORTABLE : PLSA_COMFORTABLE) * (showReal ? 1 : deflator);
+  const bMod = (isCouple ? PLSA_COUPLE_MODERATE : PLSA_MODERATE) * (showReal ? 1 : deflator);
+  const bMin = (isCouple ? PLSA_COUPLE_MINIMUM : PLSA_MINIMUM) * (showReal ? 1 : deflator);
+  const income = showReal ? (deflator > 0 ? afterTaxIncome / deflator : afterTaxIncome) : afterTaxIncome;
+  if (income >= bComf) return 'var(--color-accent-green)';
+  if (income >= bMod) return '#BA7517';
+  return '#D85A30';
+}
+
 function escapeHTML(str) {
   const el = document.createElement('span');
   el.textContent = str;
@@ -2546,6 +2558,30 @@ function updateTotals() {
   const taxResult = calcRetirementTax(taxIncomes, isCouple);
   const afterTaxIncome = annualIncome - taxResult.total;
 
+  // Benchmark calculation — compute PLSA level and colour before rendering totals row
+  // PLSA thresholds are published in today's money.
+  // When "show in today's money" is on: use thresholds as-is, deflate income.
+  // When off: inflate thresholds to nominal future terms so they match the nominal income shown.
+  const showReal = document.getElementById('inflationToggle') && document.getElementById('inflationToggle').checked;
+  const bMinBase = coupleMode ? PLSA_COUPLE_MINIMUM : PLSA_MINIMUM;
+  const bModBase = coupleMode ? PLSA_COUPLE_MODERATE : PLSA_MODERATE;
+  const bComfBase = coupleMode ? PLSA_COUPLE_COMFORTABLE : PLSA_COMFORTABLE;
+  const bMin = showReal ? bMinBase : bMinBase * deflator;
+  const bMod = showReal ? bModBase : bModBase * deflator;
+  const bComf = showReal ? bComfBase : bComfBase * deflator;
+  const benchIncome = showReal ? (deflator > 0 ? afterTaxIncome / deflator : afterTaxIncome) : afterTaxIncome;
+  const benchMax = bComf * 1.3;
+  const minPct = Math.min((bMin / benchMax) * 100, 100);
+  const modPct = Math.min((bMod / benchMax) * 100, 100);
+  const comfPct = Math.min((bComf / benchMax) * 100, 100);
+  const yourPct = Math.min((benchIncome / benchMax) * 100, 100);
+  let benchLevel, benchColor;
+  if (benchIncome >= bComf) { benchLevel = 'Comfortable'; benchColor = 'var(--color-accent-green)'; }
+  else if (benchIncome >= bMod) { benchLevel = 'Moderate'; benchColor = '#BA7517'; }
+  else if (benchIncome >= bMin) { benchLevel = 'Minimum'; benchColor = '#D85A30'; }
+  else { benchLevel = 'Below minimum'; benchColor = '#D85A30'; }
+  const benchNote = showReal ? '' : ' (PLSA thresholds inflated to match)';
+
   const d = deflator;
   totalsRow.innerHTML = `
     <div class="total-item">
@@ -2566,32 +2602,16 @@ function updateTotals() {
     </div>
     <div class="total-item">
       <div class="total-label">After tax (estimated)${realLabel()}</div>
-      <div class="total-value" style="color:#D85A30">${fmtR(afterTaxIncome, d)}/yr</div>
+      <div class="total-value" style="color:${benchColor}">${fmtR(afterTaxIncome, d)}/yr</div>
       <span class="monthly-hero-label">Monthly after tax</span>
-      <span class="monthly-hero" style="color:#D85A30">${fmtR(afterTaxIncome / 12, d)}/mo</span>
+      <span class="monthly-hero" style="color:${benchColor}">${fmtR(afterTaxIncome / 12, d)}/mo</span>
       <div class="total-sub">Income tax ${fmt(taxResult.incomeTax)}${taxResult.cgt > 0 ? ' + CGT ' + fmt(taxResult.cgt) : ''}</div>
     </div>
   `;
 
-  // Benchmark bar — PLSA thresholds are in today's money, so always compare in real terms
-  const benchIncomeReal = deflator > 0 ? afterTaxIncome / deflator : afterTaxIncome;
-  const bMin = coupleMode ? PLSA_COUPLE_MINIMUM : PLSA_MINIMUM;
-  const bMod = coupleMode ? PLSA_COUPLE_MODERATE : PLSA_MODERATE;
-  const bComf = coupleMode ? PLSA_COUPLE_COMFORTABLE : PLSA_COMFORTABLE;
-  const benchMax = bComf * 1.3;
-  const minPct = Math.min((bMin / benchMax) * 100, 100);
-  const modPct = Math.min((bMod / benchMax) * 100, 100);
-  const comfPct = Math.min((bComf / benchMax) * 100, 100);
-  const yourPct = Math.min((benchIncomeReal / benchMax) * 100, 100);
-  let benchLevel, benchColor;
-  if (benchIncomeReal >= bComf) { benchLevel = 'Comfortable'; benchColor = 'var(--color-accent-green)'; }
-  else if (benchIncomeReal >= bMod) { benchLevel = 'Moderate'; benchColor = '#BA7517'; }
-  else if (benchIncomeReal >= bMin) { benchLevel = 'Minimum'; benchColor = '#D85A30'; }
-  else { benchLevel = 'Below minimum'; benchColor = '#D85A30'; }
-
   document.getElementById('benchmarkBar').innerHTML = `
     <div class="benchmark-bar">
-      <div class="benchmark-bar-label">Retirement Living Standard (PLSA${coupleMode ? ', couple' : ', single'}, after tax, today's money)</div>
+      <div class="benchmark-bar-label">Retirement Living Standard (PLSA${coupleMode ? ', couple' : ', single'}, after tax${realLabel()})</div>
       <div class="benchmark-track">
         <div class="benchmark-fill" style="width:${yourPct}%;background:${benchColor}"></div>
       </div>
@@ -2601,7 +2621,7 @@ function updateTotals() {
         <div class="benchmark-marker" style="width:${comfPct - modPct}%"><div class="benchmark-marker-label">Comfortable</div><div class="benchmark-marker-value">${fmt(bComf)}</div></div>
         <div class="benchmark-marker" style="flex:1"></div>
       </div>
-      <div class="benchmark-result" style="color:${benchColor}">Your after-tax income: ${fmt(benchIncomeReal)}/yr (today's money) — ${benchLevel}</div>
+      <div class="benchmark-result" style="color:${benchColor}">Your after-tax income: ${fmt(benchIncome)}/yr${realLabel()} — ${benchLevel}${benchNote}</div>
     </div>
   `;
 }
@@ -2756,9 +2776,9 @@ function updateTabs() {
       </div>
       <div class="total-item">
         <div class="total-label">After tax (estimated)${realLabel()}</div>
-        <div class="total-value" style="color:#D85A30">${fmtR(drawdownAfterTax, deflator)}/yr</div>
+        <div class="total-value" style="color:${getPlsaColor(drawdownAfterTax, years, tabIsCouple)}">${fmtR(drawdownAfterTax, deflator)}/yr</div>
         <span class="monthly-hero-label">Monthly after tax</span>
-        <span class="monthly-hero" style="color:#D85A30">${fmtR(drawdownAfterTax / 12, deflator)}/mo</span>
+        <span class="monthly-hero" style="color:${getPlsaColor(drawdownAfterTax, years, tabIsCouple)}">${fmtR(drawdownAfterTax / 12, deflator)}/mo</span>
         <div class="total-sub">Income tax ${fmt(drawdownTax.incomeTax)}${drawdownTax.cgt > 0 ? ' + CGT ' + fmt(drawdownTax.cgt) : ''}</div>
       </div>
     </div>
@@ -2860,9 +2880,9 @@ function updateTabs() {
       </div>
       <div class="total-item">
         <div class="total-label">After tax (estimated)${realLabel()}</div>
-        <div class="total-value" style="color:#D85A30">${fmtR(annuityAfterTax, deflator)}/yr</div>
+        <div class="total-value" style="color:${getPlsaColor(annuityAfterTax, years, tabIsCouple)}">${fmtR(annuityAfterTax, deflator)}/yr</div>
         <span class="monthly-hero-label">Monthly after tax</span>
-        <span class="monthly-hero" style="color:#D85A30">${fmtR(annuityAfterTax / 12, deflator)}/mo</span>
+        <span class="monthly-hero" style="color:${getPlsaColor(annuityAfterTax, years, tabIsCouple)}">${fmtR(annuityAfterTax / 12, deflator)}/mo</span>
         <div class="total-sub">Income tax ${fmt(annuityTaxResult.incomeTax)}${annuityTaxResult.cgt > 0 ? ' + CGT ' + fmt(annuityTaxResult.cgt) : ''}</div>
       </div>
     </div>
