@@ -1432,8 +1432,8 @@ h1 {
     <input type="range" id="retireAge" min="37" max="100" value="67">
   </div>
   <div class="control-group">
-    <label for="annualRate">Annual rate <span class="control-value" id="annualRateValue">7%</span></label>
-    <input type="range" id="annualRate" min="3" max="12" value="7">
+    <label for="annualRate">Annual rate <span class="control-value" id="annualRateValue">5%</span></label>
+    <input type="range" id="annualRate" min="3" max="12" value="5">
   </div>
   <div class="control-group">
     <label for="salary">Annual salary</label>
@@ -1532,6 +1532,12 @@ h1 {
   <label class="total-toggle"><input type="checkbox" id="showTotalLine"> Show total</label>
 </div>
 
+<!-- 5b. Toggles -->
+<div style="display:flex;flex-wrap:wrap;gap:16px;margin:12px 0">
+<label class="lump-sum-toggle" style="margin-bottom:0"><input type="checkbox" id="lumpSumToggle"> Take 25% tax-free pension lump sum</label>
+<label class="lump-sum-toggle" style="margin-bottom:0"><input type="checkbox" id="inflationToggle"> Show in today's money <span class="info-hint" data-tip="Prices rise over time (inflation). £100,000 in 30 years won't buy as much as £100,000 today. This adjusts future amounts so you can see what they'd actually feel like in terms of today's spending power. We assume 2.5% per year.">?</span></label>
+</div>
+
 <!-- 6. Pot summary cards -->
 <h3 class="section-heading">Pot Summary</h3>
 <div class="summary-grid" id="summaryGrid"></div>
@@ -1542,10 +1548,6 @@ h1 {
 
 <!-- 8. Tabs -->
 <h3 class="section-heading">Income Breakdown</h3>
-<div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:12px">
-<label class="lump-sum-toggle" style="margin-bottom:0"><input type="checkbox" id="lumpSumToggle"> Take 25% tax-free pension lump sum</label>
-<label class="lump-sum-toggle" style="margin-bottom:0"><input type="checkbox" id="inflationToggle"> Show in today's money <span class="info-hint" data-tip="Prices rise over time (inflation). £100,000 in 30 years won't buy as much as £100,000 today. This adjusts future amounts so you can see what they'd actually feel like in terms of today's spending power. We assume 2.5% per year.">?</span></label>
-</div>
 <div class="tabs">
   <button class="tab-btn active" data-tab="drawdown">Drawdown</button>
   <button class="tab-btn" data-tab="annuity">Annuity</button>
@@ -1567,9 +1569,9 @@ h1 {
 <div class="disclaimers">
   <h3>Assumptions &amp; Disclaimers</h3>
   <ul>
-    <li>Growth rate assumes a broad global equity tracker fund (e.g. FTSE Global All Cap or MSCI World). Actual returns will vary and are not guaranteed.</li>
+    <li>The default 5% growth rate assumes a broad global equity tracker fund (e.g. FTSE Global All Cap or MSCI World). This is a nominal return before inflation. Actual returns will vary and are not guaranteed.</li>
     <li>Inflation is modelled at a fixed 2.5% per year. Real inflation may be higher or lower.</li>
-    <li>State pension is shown at the current full rate of £11,500/yr. Your entitlement depends on your National Insurance record and may change.</li>
+    <li>State pension is shown at the current full rate of £11,500/yr, projected forward at 2.5% inflation (triple lock). This assumes no real-terms growth. Your entitlement depends on your National Insurance record and may change.</li>
     <li>Drawdown uses a fixed 4% withdrawal rate (the "4% rule"). This is a common guideline, not a guarantee of sustainable income.</li>
     <li>Annuity rates shown are illustrative (5% pension, 4% ISA/LISA, 3% Cash ISA/Cash LISA/Bonds). Actual annuity quotes depend on age, health, and market conditions at the time of purchase.</li>
     <li>Lifetime ISAs (LISAs) include a 25% government bonus on contributions up to £4,000/yr (max £1,000 bonus/yr). Contributions are capped at £4,000/yr and the bonus stops at age 50. Withdrawals before age 60 (except for a first home) incur a 25% penalty — this is not modelled here.</li>
@@ -1585,6 +1587,12 @@ h1 {
   </ul>
   <p class="privacy-note">Your data stays private. All calculations run in your browser. Nothing is sent to any server. Your settings are saved in your browser's local storage only.</p>
 </div>
+
+<footer style="text-align:center;padding:24px 16px 32px;color:var(--color-text-secondary);font-size:0.85rem">
+  <a href="https://simplepensioncalculator.co.uk" style="color:var(--color-text-secondary);text-decoration:none">simplepensioncalculator.co.uk</a>
+  <br>
+  Bugs or questions? <a href="mailto:blurt_bonded370@simplelogin.com" style="color:var(--color-accent-green)">blurt_bonded370@simplelogin.com</a>
+</footer>
 
 <script>
 const PALETTE = ['#7F77DD','#1D9E75','#378ADD','#D85A30','#BA7517','#D4537E','#639922'];
@@ -2472,6 +2480,7 @@ function updateSummary() {
       <div class="summary-card-projected">${fmt(futureStatePension(years))}/yr</div>
       <div class="summary-card-start">${fmt(STATE_PENSION)}/yr today</div>
       <div class="summary-card-drawdown" style="color:var(--color-text-secondary)">Based on 35 qualifying years of NI</div>
+      <div class="summary-card-drawdown" style="color:var(--color-text-secondary);font-size:0.78rem;margin-top:2px">Projected at 2.5% inflation (triple lock) — no real-terms growth</div>
     </div>
   `;
 
@@ -2564,8 +2573,8 @@ function updateTotals() {
     </div>
   `;
 
-  // Benchmark bar
-  const benchIncome = afterTaxIncome;
+  // Benchmark bar — PLSA thresholds are in today's money, so always compare in real terms
+  const benchIncomeReal = deflator > 0 ? afterTaxIncome / deflator : afterTaxIncome;
   const bMin = coupleMode ? PLSA_COUPLE_MINIMUM : PLSA_MINIMUM;
   const bMod = coupleMode ? PLSA_COUPLE_MODERATE : PLSA_MODERATE;
   const bComf = coupleMode ? PLSA_COUPLE_COMFORTABLE : PLSA_COMFORTABLE;
@@ -2573,16 +2582,16 @@ function updateTotals() {
   const minPct = Math.min((bMin / benchMax) * 100, 100);
   const modPct = Math.min((bMod / benchMax) * 100, 100);
   const comfPct = Math.min((bComf / benchMax) * 100, 100);
-  const yourPct = Math.min((benchIncome / benchMax) * 100, 100);
+  const yourPct = Math.min((benchIncomeReal / benchMax) * 100, 100);
   let benchLevel, benchColor;
-  if (benchIncome >= bComf) { benchLevel = 'Comfortable'; benchColor = 'var(--color-accent-green)'; }
-  else if (benchIncome >= bMod) { benchLevel = 'Moderate'; benchColor = '#BA7517'; }
-  else if (benchIncome >= bMin) { benchLevel = 'Minimum'; benchColor = '#D85A30'; }
+  if (benchIncomeReal >= bComf) { benchLevel = 'Comfortable'; benchColor = 'var(--color-accent-green)'; }
+  else if (benchIncomeReal >= bMod) { benchLevel = 'Moderate'; benchColor = '#BA7517'; }
+  else if (benchIncomeReal >= bMin) { benchLevel = 'Minimum'; benchColor = '#D85A30'; }
   else { benchLevel = 'Below minimum'; benchColor = '#D85A30'; }
 
   document.getElementById('benchmarkBar').innerHTML = `
     <div class="benchmark-bar">
-      <div class="benchmark-bar-label">Retirement Living Standard (PLSA${coupleMode ? ', couple' : ', single'}, after tax)</div>
+      <div class="benchmark-bar-label">Retirement Living Standard (PLSA${coupleMode ? ', couple' : ', single'}, after tax, today's money)</div>
       <div class="benchmark-track">
         <div class="benchmark-fill" style="width:${yourPct}%;background:${benchColor}"></div>
       </div>
@@ -2592,7 +2601,7 @@ function updateTotals() {
         <div class="benchmark-marker" style="width:${comfPct - modPct}%"><div class="benchmark-marker-label">Comfortable</div><div class="benchmark-marker-value">${fmt(bComf)}</div></div>
         <div class="benchmark-marker" style="flex:1"></div>
       </div>
-      <div class="benchmark-result" style="color:${benchColor}">Your after-tax income: ${fmt(benchIncome)}/yr — ${benchLevel}</div>
+      <div class="benchmark-result" style="color:${benchColor}">Your after-tax income: ${fmt(benchIncomeReal)}/yr (today's money) — ${benchLevel}</div>
     </div>
   `;
 }
@@ -3133,8 +3142,8 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   currentAgeInput.value = '';
   retireAgeInput.value = 67;
   retireAgeValue.textContent = '67';
-  annualRateInput.value = 7;
-  annualRateValue.textContent = '7%';
+  annualRateInput.value = 5;
+  annualRateValue.textContent = '5%';
   salaryInput.dataset.raw = '0';
   salaryInput.value = '';
   document.getElementById('showTotalLine').checked = false;

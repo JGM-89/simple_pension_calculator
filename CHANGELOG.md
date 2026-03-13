@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-03-13 (v3)
+
+### New features
+- **Custom domain** — live at [simplepensioncalculator.co.uk](https://simplepensioncalculator.co.uk)
+- **Partner section redesign** — couple mode now shows a dedicated "Partner's Pots" section with its own controls, pot grid, and add buttons instead of owner badges
+- **Full tax breakdown** — "Show the working" sections now display band-by-band tax calculation (personal allowance, basic, higher, additional rates)
+- **PDF couple mode** — pot tables split by owner, income tables grouped with YOUR/PARTNER headers, state pension doubled
+- **PDF branding** — domain URL shown on every page footer and title page
+- **SEO** — meta tags, JSON-LD structured data, sitemap, robots.txt with AI crawler permissions, Google Search Console verified
+- **Contact footer** — email address for bug reports and questions
+
+### Improvements
+- **Default growth rate changed to 5%** — more conservative and matches PDF assumptions text (was 7%)
+- **State pension note** — card now shows "Projected at 2.5% inflation (triple lock) — no real-terms growth"
+- **PLSA bar always in today's money** — benchmark comparison now always deflates income to real terms for an honest comparison against PLSA thresholds
+- **Toggles moved above pot summary** — "Show in today's money" and lump sum toggles now sit between the chart and pot summary for better UX
+- **Inflation toggle scope** — pot values and summary cards always show nominal values; only income figures respond to "show in today's money"
+- **(excl. DB) label** — total pot value shows "(excl. DB)" when defined benefit pensions exist
+- **Annuity inflation warnings** — PDF comparison sections include warning boxes about annuity income erosion
+- Partner pots now use correct projection years based on partner age/retirement age
+- LISA contribution years use partner age for partner-owned LISAs
+- Partner salary correctly used for contribution equivalents on partner pots
+- Add-pot form appears inside the correct section with matching border colour (purple for partner)
+
+### Fixes
+- DB pension value no longer resets to zero when editing
+- Chart no longer crashes with DB-only pots (no DC pots)
+- escapeHTML now escapes double quotes to prevent attribute injection
+- Old localStorage data with missing fields handled gracefully
+
 ## 2026-03-13 (v2)
 
 ### New features
