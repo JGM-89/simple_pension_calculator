@@ -1299,7 +1299,7 @@ function renderPots() {
             <input type="number" min="0" step="${isPct ? '0.5' : '1'}" value="${pot.employerContrib}" data-index="${i}" class="employer-contrib-input">
           </div>
         </div>
-        ${isPct && monthlyEquiv ? `<div class="contrib-equiv">= ${monthlyEquiv}</div>` : ''}
+        ${isPct && monthlyEquiv ? `<div class="contrib-equiv" data-index="${i}">= ${monthlyEquiv}</div>` : ''}
       `;
     } else {
       contribHTML = `
@@ -2102,9 +2102,22 @@ function updateEmptyState() {
   document.getElementById('pdfBtnWrap').style.display = empty ? 'none' : '';
 }
 
+function updateContribEquiv() {
+  const salary = parseFloat(salaryInput.dataset.raw) || 0;
+  document.querySelectorAll('.contrib-equiv').forEach(el => {
+    const idx = el.dataset.index;
+    if (idx === undefined) return;
+    const pot = pots[idx];
+    if (!pot || pot.contribMode !== 'percent') return;
+    const monthly = ((pot.employeeContrib + pot.employerContrib) / 100) * salary / 12;
+    el.textContent = '= ' + fmt(monthly) + '/mo';
+  });
+}
+
 function updateWithoutRerender() {
   updateEmptyState();
   if (pots.length === 0) { saveState(); return; }
+  updateContribEquiv();
   updateChart();
   updateLegend();
   updateSummary();
