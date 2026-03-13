@@ -1263,7 +1263,7 @@ function updateSummary() {
   const { currentAge, retireAge, rate } = getInputs();
   const years = Math.max(retireAge - currentAge, 1);
 
-  summaryGrid.innerHTML = pots.map((pot, i) => {
+  let cardsHTML = pots.map((pot, i) => {
     const projected = projectPot(pot, years, rate);
     const drawdown = projected * DRAWDOWN_RATE;
     const color = PALETTE[i % PALETTE.length];
@@ -1279,6 +1279,20 @@ function updateSummary() {
       </div>
     `;
   }).join('');
+
+  cardsHTML += `
+    <div class="summary-card">
+      <div class="summary-card-header">
+        <div class="summary-card-swatch" style="background:var(--color-text-secondary)"></div>
+        <div class="summary-card-name">State Pension</div>
+      </div>
+      <div class="summary-card-projected">${fmt(STATE_PENSION)}/yr</div>
+      <div class="summary-card-start">Full new state pension</div>
+      <div class="summary-card-drawdown" style="color:var(--color-text-secondary)">Based on 35 qualifying years of NI</div>
+    </div>
+  `;
+
+  summaryGrid.innerHTML = cardsHTML;
 }
 
 // ── Totals ──
