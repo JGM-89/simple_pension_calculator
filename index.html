@@ -1080,14 +1080,27 @@ function escapeHTML(str) {
   return el.innerHTML;
 }
 
+function isLisa(type) {
+  return type === 'lisa' || type === 'cash-lisa';
+}
+
+const LISA_ANNUAL_CAP = 4000;
+
 function getMonthlyContrib(pot) {
   if (pot.type === 'db-pension') return 0;
   const salary = parseFloat(salaryInput.dataset.raw) || 0;
+  let monthly;
   if (pot.contribMode === 'percent') {
-    return ((pot.employeeContrib + pot.employerContrib) / 100) * salary / 12;
+    monthly = ((pot.employeeContrib + pot.employerContrib) / 100) * salary / 12;
+  } else {
+    monthly = pot.employeeContrib + pot.employerContrib;
   }
-  return pot.employeeContrib + pot.employerContrib;
+  if (isLisa(pot.type)) {
+    monthly = Math.min(monthly, LISA_ANNUAL_CAP / 12);
+  }
+  return monthly;
 }
+
 
 function getPotRate(pot) {
   if (pot.type === 'cash-isa' || pot.type === 'cash-lisa' || pot.type === 'premium-bonds') return (pot.customRate || 0) / 100;
@@ -1102,9 +1115,7 @@ function getInputs() {
   };
 }
 
-function isLisa(type) {
-  return type === 'lisa' || type === 'cash-lisa';
-}
+const LISA_MAX_AGE = 50;
 
 function getLisaBonusMonthly(pot) {
   if (!isLisa(pot.type)) return 0;
@@ -1115,14 +1126,22 @@ function getLisaBonusMonthly(pot) {
   return (bonusableContrib * 0.25) / 12;
 }
 
+function getLisaContribYears(years) {
+  const currentAge = parseInt(currentAgeInput.value) || 37;
+  if (currentAge >= LISA_MAX_AGE) return 0;
+  return Math.min(years, LISA_MAX_AGE - currentAge);
+}
+
 function projectPot(pot, years, rate) {
   const potRate = (pot.type === 'cash-isa' || pot.type === 'cash-lisa' || pot.type === 'premium-bonds') ? getPotRate(pot) : rate;
   const monthlyRate = potRate / 12;
-  const months = years * 12;
-  const monthly = getMonthlyContrib(pot) + getLisaBonusMonthly(pot);
+  const monthly = getMonthlyContrib(pot);
+  const bonus = getLisaBonusMonthly(pot);
+  const lisaMonths = getLisaContribYears(years) * 12;
   let val = pot.value;
-  for (let m = 0; m < months; m++) {
-    val = val * (1 + monthlyRate) + monthly;
+  for (let m = 0; m < years * 12; m++) {
+    const monthlyIn = monthly + (m < lisaMonths ? bonus : 0);
+    val = val * (1 + monthlyRate) + monthlyIn;
   }
   return val;
 }
@@ -1130,12 +1149,17 @@ function projectPot(pot, years, rate) {
 function projectPotByYear(pot, years, rate) {
   const potRate = (pot.type === 'cash-isa' || pot.type === 'cash-lisa' || pot.type === 'premium-bonds') ? getPotRate(pot) : rate;
   const monthlyRate = potRate / 12;
-  const monthly = getMonthlyContrib(pot) + getLisaBonusMonthly(pot);
+  const monthly = getMonthlyContrib(pot);
+  const bonus = getLisaBonusMonthly(pot);
+  const lisaMonths = getLisaContribYears(years) * 12;
   const values = [pot.value];
   let val = pot.value;
+  let monthCount = 0;
   for (let y = 0; y < years; y++) {
     for (let m = 0; m < 12; m++) {
-      val = val * (1 + monthlyRate) + monthly;
+      const monthlyIn = monthly + (monthCount < lisaMonths ? bonus : 0);
+      val = val * (1 + monthlyRate) + monthlyIn;
+      monthCount++;
     }
     values.push(val);
   }
@@ -1593,7 +1617,8 @@ function updateSummary() {
     }
     const projected = projectPot(pot, years, rate);
     const totalContribs = pot.value + getTotalContributions(pot, years);
-    const lisaBonus = getLisaBonusMonthly(pot) * years * 12;
+    const lisaContribYears = getLisaContribYears(years);
+    const lisaBonus = getLisaBonusMonthly(pot) * lisaContribYears * 12;
     const totalIn = totalContribs + lisaBonus;
     const growth = projected - totalIn;
     const takeLump = showLump && pot.type === 'pension';
