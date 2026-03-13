@@ -1570,12 +1570,18 @@ const TAX_ADDITIONAL_RATE = 0.45;
 // Calculate income tax on total taxable income
 function calcIncomeTax(taxableIncome) {
   if (taxableIncome <= 0) return 0;
+  const b = calcIncomeTaxBreakdown(taxableIncome);
+  return b.total;
+}
+
+function calcIncomeTaxBreakdown(taxableIncome) {
+  if (taxableIncome <= 0) return { pa: 0, paUsed: 0, basicTaxable: 0, basicTax: 0, higherTaxable: 0, higherTax: 0, additionalTaxable: 0, additionalTax: 0, total: 0, tapered: false };
   // Personal allowance tapers above £100k: reduced by £1 for every £2 over £100k
   let pa = TAX_PERSONAL_ALLOWANCE;
-  if (taxableIncome > 100000) {
+  const tapered = taxableIncome > 100000;
+  if (tapered) {
     pa = Math.max(0, pa - Math.floor((taxableIncome - 100000) / 2));
   }
-  let tax = 0;
   let remaining = taxableIncome;
   // Personal allowance
   const paUsed = Math.min(remaining, pa);
@@ -1583,16 +1589,18 @@ function calcIncomeTax(taxableIncome) {
   // Basic rate
   const basicBand = Math.max(TAX_BASIC_LIMIT - pa, 0);
   const basicTaxable = Math.min(remaining, basicBand);
-  tax += basicTaxable * TAX_BASIC_RATE;
+  const basicTax = basicTaxable * TAX_BASIC_RATE;
   remaining -= basicTaxable;
   // Higher rate
   const higherBand = TAX_HIGHER_LIMIT - TAX_BASIC_LIMIT;
   const higherTaxable = Math.min(remaining, higherBand);
-  tax += higherTaxable * TAX_HIGHER_RATE;
+  const higherTax = higherTaxable * TAX_HIGHER_RATE;
   remaining -= higherTaxable;
   // Additional rate
-  tax += remaining * TAX_ADDITIONAL_RATE;
-  return tax;
+  const additionalTaxable = remaining;
+  const additionalTax = additionalTaxable * TAX_ADDITIONAL_RATE;
+  const total = basicTax + higherTax + additionalTax;
+  return { pa, paUsed, tapered, basicTaxable, basicTax, higherTaxable, higherTax, additionalTaxable, additionalTax, total };
 }
 
 // Calculate total tax on retirement income from all sources
@@ -1608,8 +1616,8 @@ function calcRetirementTax(incomes, isCouple) {
         totalCgt += inc.cgt || 0;
       }
     });
-    const incomeTax = calcIncomeTax(taxableIncome);
-    return { incomeTax, cgt: totalCgt, total: incomeTax + totalCgt, taxableIncome };
+    const breakdown = calcIncomeTaxBreakdown(taxableIncome);
+    return { incomeTax: breakdown.total, cgt: totalCgt, total: breakdown.total + totalCgt, taxableIncome, breakdown };
   }
   // Couple mode: split by owner, tax each person separately
   let yourTaxable = 0, partnerTaxable = 0, totalCgt = 0;
@@ -1622,8 +1630,10 @@ function calcRetirementTax(incomes, isCouple) {
       totalCgt += inc.cgt || 0;
     }
   });
-  const incomeTax = calcIncomeTax(yourTaxable) + calcIncomeTax(partnerTaxable);
-  return { incomeTax, cgt: totalCgt, total: incomeTax + totalCgt, taxableIncome: yourTaxable + partnerTaxable };
+  const yourBreakdown = calcIncomeTaxBreakdown(yourTaxable);
+  const partnerBreakdown = calcIncomeTaxBreakdown(partnerTaxable);
+  const incomeTax = yourBreakdown.total + partnerBreakdown.total;
+  return { incomeTax, cgt: totalCgt, total: incomeTax + totalCgt, taxableIncome: yourTaxable + partnerTaxable, breakdown: yourBreakdown, partnerBreakdown, yourTaxable, partnerTaxable };
 }
 
 function futureStatePension(years) {
@@ -2368,12 +2378,12 @@ function updateSummary() {
           <div class="summary-card-swatch" style="background:${color}"></div>
           <div class="summary-card-name">${escapeHTML(pot.name)}</div>
         </div>
-        <div class="summary-card-projected">${fmtR(projected, deflator)}${realLabel()}</div>
-        <div class="summary-card-breakdown">${fmt(totalIn)} contributed · ${fmtR(growth, deflator)} growth</div>
+        <div class="summary-card-projected">${fmt(projected)}</div>
+        <div class="summary-card-breakdown">${fmt(totalIn)} contributed · ${fmt(growth)} growth</div>
         ${bonusHTML}
         <div class="summary-card-start">Starting: ${fmt(pot.value)}</div>
         ${lumpHTML}
-        <div class="summary-card-drawdown">4% drawdown: ${fmtR(drawdown, deflator)}/yr</div>
+        <div class="summary-card-drawdown">4% drawdown: ${fmt(drawdown)}/yr</div>
       </div>
     `;
   }
@@ -2400,7 +2410,7 @@ function updateSummary() {
         <div class="summary-card-swatch" style="background:var(--color-text-secondary)"></div>
         <div class="summary-card-name">State Pension</div>
       </div>
-      <div class="summary-card-projected">${fmtR(futureStatePension(years), deflator)}/yr${realLabel()}</div>
+      <div class="summary-card-projected">${fmt(futureStatePension(years))}/yr</div>
       <div class="summary-card-start">${fmt(STATE_PENSION)}/yr today</div>
       <div class="summary-card-drawdown" style="color:var(--color-text-secondary)">Based on 35 qualifying years of NI</div>
     </div>
@@ -2469,8 +2479,8 @@ function updateTotals() {
   const d = deflator;
   totalsRow.innerHTML = `
     <div class="total-item">
-      <div class="total-label">Total pot${realLabel()}</div>
-      <div class="total-value">${fmtR(totalProjected, d)}</div>
+      <div class="total-label">Total pot value${totalDbIncome > 0 ? ' (excl. DB)' : ''}</div>
+      <div class="total-value">${fmt(totalProjected)}</div>
     </div>
     <div class="total-item">
       <div class="total-label">Total monthly contributions</div>
@@ -2554,6 +2564,26 @@ function groupByOwner(items, pots, isCouple) {
     html += `<div class="owner-group-label partner">Partner's income</div>` + partnerItems.join('');
   }
   return html;
+}
+
+function renderTaxBreakdownMaths(taxResult, isCouple) {
+  function renderOnePerson(b, taxable, label) {
+    let html = '';
+    if (label) html += `<div class="maths-row" style="margin-top:4px"><span class="maths-label" style="font-weight:600;color:var(--color-text)">${label}</span><span class="maths-value"></span></div>`;
+    html += `<div class="maths-row"><span class="maths-label">Taxable income (pension + state pension + DB)</span><span class="maths-value">${fmt(taxable)}</span></div>`;
+    html += `<div class="maths-row"><span class="maths-label">Personal allowance${b.tapered ? ' (tapered to ' + fmt(b.pa) + ')' : ' (£12,570)'}</span><span class="maths-value">&minus;${fmt(b.paUsed)} tax-free</span></div>`;
+    if (b.basicTaxable > 0) html += `<div class="maths-row"><span class="maths-label">Basic rate (20%) on ${fmt(b.basicTaxable)}</span><span class="maths-value">${fmt(b.basicTax)}</span></div>`;
+    if (b.higherTaxable > 0) html += `<div class="maths-row"><span class="maths-label">Higher rate (40%) on ${fmt(b.higherTaxable)}</span><span class="maths-value">${fmt(b.higherTax)}</span></div>`;
+    if (b.additionalTaxable > 0) html += `<div class="maths-row"><span class="maths-label">Additional rate (45%) on ${fmt(b.additionalTaxable)}</span><span class="maths-value">${fmt(b.additionalTax)}</span></div>`;
+    html += `<div class="maths-row"><span class="maths-label">ISA/LISA/Premium Bond income</span><span class="maths-value">tax-free</span></div>`;
+    return html;
+  }
+
+  if (isCouple && taxResult.partnerBreakdown) {
+    return renderOnePerson(taxResult.breakdown, taxResult.yourTaxable, 'Your tax') +
+           renderOnePerson(taxResult.partnerBreakdown, taxResult.partnerTaxable, "Partner's tax");
+  }
+  return renderOnePerson(taxResult.breakdown, taxResult.taxableIncome, null);
 }
 
 function updateTabs() {
@@ -2680,11 +2710,9 @@ function updateTabs() {
         <div class="maths-row"><span class="maths-label">State pension${tabIsCouple ? ' (&times;2)' : ''}</span><span class="maths-value">${fmtR(tabStatePensionTotal, tabDeflator)}/yr</span></div>
         <div class="maths-row total"><span class="maths-label">Total gross income</span><span class="maths-value">${fmtR(drawdownPlusState, tabDeflator)}/yr</span></div>
         <div class="maths-heading">Tax calculation (2024/25 bands)</div>
-        <div class="maths-row"><span class="maths-label">Taxable income (pension + state pension + DB)</span><span class="maths-value">${fmt(drawdownTax.taxableIncome)}</span></div>
-        <div class="maths-row"><span class="maths-label">Personal allowance (${drawdownTax.taxableIncome > 100000 ? 'tapered' : '£12,570'})</span><span class="maths-value">tax-free</span></div>
-        <div class="maths-row"><span class="maths-label">ISA/LISA/Premium Bond income</span><span class="maths-value">tax-free</span></div>
+        ${renderTaxBreakdownMaths(drawdownTax, tabIsCouple)}
         ${drawdownTax.cgt > 0 ? `<div class="maths-row"><span class="maths-label">GIA capital gains tax</span><span class="maths-value">${fmt(drawdownTax.cgt)}</span></div>` : ''}
-        <div class="maths-row"><span class="maths-label">Income tax</span><span class="maths-value">${fmt(drawdownTax.incomeTax)}</span></div>
+        <div class="maths-row total"><span class="maths-label">Total tax</span><span class="maths-value">${fmt(drawdownTax.total)}</span></div>
         <div class="maths-row total"><span class="maths-label">After tax</span><span class="maths-value">${fmtR(drawdownAfterTax, tabDeflator)}/yr (${fmtR(drawdownAfterTax / 12, tabDeflator)}/mo)</span></div>
         <div class="maths-note">The "4% rule" is based on research suggesting a 4% initial withdrawal rate allows a diversified portfolio to last 30+ years in most historical scenarios. Your pot stays invested, so income can rise or fall with markets.</div>
       </div>
