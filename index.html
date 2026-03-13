@@ -706,6 +706,15 @@ h1 {
   border-radius: 12px;
 }
 
+.section-heading {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-secondary);
+  margin: 28px 0 12px;
+}
+
 .disclaimers h3 {
   font-size: 0.85rem;
   font-weight: 700;
@@ -983,12 +992,14 @@ h1 {
 </div>
 
 <!-- 6. Pot summary cards -->
+<h3 class="section-heading">Pot Summary</h3>
 <div class="summary-grid" id="summaryGrid"></div>
 
 <!-- 7. Totals row -->
 <div class="totals-row" id="totalsRow"></div>
 
 <!-- 8. Tabs -->
+<h3 class="section-heading">Income Breakdown</h3>
 <label class="lump-sum-toggle"><input type="checkbox" id="lumpSumToggle"> Take 25% tax-free pension lump sum</label>
 <div class="tabs">
   <button class="tab-btn active" data-tab="drawdown">Drawdown</button>
