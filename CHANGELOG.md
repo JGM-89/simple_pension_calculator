@@ -12,6 +12,9 @@
 - **Contact footer** — email address for bug reports and questions
 
 ### Improvements
+- **Expanded add-pot form** — contributions, interest rates, and DB calculator now available when creating a pot (not just after editing). Pensions get £/% toggle with employee/employer fields, DB pensions get the full service-years calculator, cash ISAs/premium bonds get rate fields
+- **PLSA bar syncs with inflation toggle** — thresholds inflate to nominal when toggle is off, deflate when on, so numbers always match surrounding income figures. Note explains "(PLSA thresholds inflated to match)" in nominal mode
+- **After-tax colour reflects PLSA level** — green (Comfortable), amber (Moderate), red (Minimum/below) across totals row, drawdown tab, and annuity tab
 - **Default growth rate changed to 5%** — more conservative and matches PDF assumptions text (was 7%)
 - **State pension note** — card now shows "Projected at 2.5% inflation (triple lock) — no real-terms growth"
 - **PLSA bar always in today's money** — benchmark comparison now always deflates income to real terms for an honest comparison against PLSA thresholds

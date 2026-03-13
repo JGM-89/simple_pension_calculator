@@ -6,7 +6,7 @@ A free, private UK retirement planning calculator that runs entirely in your bro
 
 ## Features
 
-- **8 pot types** — Pensions, S&S ISAs, GIAs, Cash ISAs, S&S LISAs, Cash LISAs, Premium Bonds, and Defined Benefit pensions
+- **8 pot types** — Pensions, S&S ISAs, GIAs, Cash ISAs, S&S LISAs, Cash LISAs, Premium Bonds, and Defined Benefit pensions. All fields (contributions, rates, DB calculator) available from the add form — no need to save first
 - **Couple mode** — Plan for two people with separate ages, salaries, and pot ownership in dedicated sections
 - **Tax modelling** — Estimated income tax (2024/25 bands with personal allowance taper) and CGT on GIA withdrawals, with full band-by-band "show the working" breakdowns
 - **LISA government bonus** — 25% bonus on contributions up to £4,000/yr, automatically stops at age 50

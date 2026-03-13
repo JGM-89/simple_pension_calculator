@@ -1509,6 +1509,7 @@ h1 {
     <input type="number" id="newPotValue" min="0" placeholder="0">
   </div>
   <input type="hidden" id="newPotType" value="pension">
+  <div id="addPotDynamicFields"></div>
   <div class="form-actions">
     <button class="btn-primary" id="submitPot" type="button">Add pot</button>
     <button class="btn-secondary" id="cancelPot" type="button">Cancel</button>
@@ -2238,8 +2239,11 @@ const formConfig = {
 
 let _addPotOwner = 'you'; // track which section opened the form
 
+let _addFormContribMode = 'pounds';
+
 function openAddForm(type, owner) {
   _addPotOwner = owner || 'you';
+  _addFormContribMode = 'pounds';
   // Move form into the correct section
   const targetSection = _addPotOwner === 'partner'
     ? document.getElementById('partnerSection')
@@ -2260,6 +2264,119 @@ function openAddForm(type, owner) {
   document.getElementById('addPotFormTitle').textContent = prefix + cfg.title;
   document.getElementById('newPotName').placeholder = cfg.placeholder;
   document.querySelector('label[for="newPotValue"]').textContent = type === 'db-pension' ? 'Expected annual income (£/yr)' : 'Current value (£)';
+
+  // Build dynamic fields based on pot type
+  const dyn = document.getElementById('addPotDynamicFields');
+  let html = '';
+
+  if (type === 'pension') {
+    html = `
+      <label class="pot-value-label" style="margin-top:8px">Monthly contributions</label>
+      <div class="contrib-mode-toggle" id="newPotContribToggle">
+        <button type="button" class="contrib-mode-btn active" data-mode="pounds">£</button>
+        <button type="button" class="contrib-mode-btn" data-mode="percent">% salary</button>
+      </div>
+      <div class="pot-contrib-row">
+        <div class="pot-contrib-field">
+          <label id="newPotEmployeeLabel">You (£)</label>
+          <input type="number" min="0" step="1" id="newPotEmployee" value="0">
+        </div>
+        <div class="pot-contrib-field">
+          <label id="newPotEmployerLabel">Employer (£)</label>
+          <input type="number" min="0" step="1" id="newPotEmployer" value="0">
+        </div>
+      </div>
+    `;
+  } else if (type === 'db-pension') {
+    html = `
+      <div style="margin-top:8px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;color:var(--color-text-secondary);cursor:pointer">
+          <input type="checkbox" id="newPotDbInflation" checked style="accent-color:var(--color-accent-green)">
+          Inflation-linked
+        </label>
+      </div>
+      <button type="button" class="db-helper-toggle" id="newPotDbHelperToggle">Calculate from service…</button>
+      <div class="db-helper" id="newPotDbHelper">
+        <div class="db-helper-row">
+          <div class="db-helper-field">
+            <label>Years of service</label>
+            <input type="number" min="0" max="50" id="newPotDbYears" placeholder="e.g. 20">
+          </div>
+          <div class="db-helper-field">
+            <label>Accrual rate</label>
+            <select id="newPotDbAccrual">
+              <option value="60" selected>1/60th</option>
+              <option value="80">1/80th</option>
+              <option value="49">1/49th (CARE)</option>
+              <option value="57">1/57th (NHS)</option>
+              <option value="43">1/43rd (Teachers)</option>
+            </select>
+          </div>
+        </div>
+        <div class="db-helper-row">
+          <div class="db-helper-field">
+            <label>Final/career avg salary (£)</label>
+            <input type="number" min="0" id="newPotDbSalary" placeholder="e.g. 45000">
+          </div>
+        </div>
+        <button type="button" class="db-helper-btn" id="newPotDbCalcBtn">Calculate & apply</button>
+      </div>
+    `;
+  } else {
+    // All other DC pot types: simple monthly contribution
+    html = `
+      <div class="pot-contrib-row" style="margin-top:8px">
+        <div class="pot-contrib-field">
+          <label>Monthly contribution (£/mo)</label>
+          <input type="number" min="0" step="1" id="newPotMonthly" value="0">
+        </div>
+      </div>
+    `;
+  }
+
+  // Custom rate field for cash-isa, cash-lisa, premium-bonds
+  if (hasCustomRate(type)) {
+    const rateLabel = type === 'premium-bonds' ? 'Expected prize rate (%)' : 'Interest rate (%)';
+    const defaultRate = type === 'premium-bonds' ? 4.4 : type === 'cash-lisa' ? 4 : 4;
+    html += `
+      <div class="pot-rate-group" style="margin-top:8px">
+        <label>${rateLabel}</label>
+        <input type="number" min="0" max="20" step="0.1" id="newPotCustomRate" value="${defaultRate}">
+      </div>
+    `;
+  }
+
+  dyn.innerHTML = html;
+
+  // Wire up dynamic event listeners
+  if (type === 'pension') {
+    document.getElementById('newPotContribToggle').addEventListener('click', e => {
+      if (!e.target.matches('.contrib-mode-btn')) return;
+      _addFormContribMode = e.target.dataset.mode;
+      const isPct = _addFormContribMode === 'percent';
+      document.querySelectorAll('#newPotContribToggle .contrib-mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === _addFormContribMode));
+      document.getElementById('newPotEmployeeLabel').textContent = isPct ? 'You (%)' : 'You (£)';
+      document.getElementById('newPotEmployerLabel').textContent = isPct ? 'Employer (%)' : 'Employer (£)';
+      document.getElementById('newPotEmployee').step = isPct ? '0.5' : '1';
+      document.getElementById('newPotEmployer').step = isPct ? '0.5' : '1';
+      document.getElementById('newPotEmployee').value = '0';
+      document.getElementById('newPotEmployer').value = '0';
+    });
+  }
+
+  if (type === 'db-pension') {
+    document.getElementById('newPotDbHelperToggle').addEventListener('click', () => {
+      document.getElementById('newPotDbHelper').classList.toggle('open');
+    });
+    document.getElementById('newPotDbCalcBtn').addEventListener('click', () => {
+      const years = parseFloat(document.getElementById('newPotDbYears').value) || 0;
+      const accrual = parseInt(document.getElementById('newPotDbAccrual').value) || 60;
+      const salary = parseFloat(document.getElementById('newPotDbSalary').value) || 0;
+      const income = Math.round((years / accrual) * salary);
+      document.getElementById('newPotValue').value = income;
+    });
+  }
+
   document.getElementById('newPotName').focus();
 }
 
@@ -2287,14 +2404,43 @@ submitPotBtn.addEventListener('click', () => {
     document.getElementById('newPotName').focus();
     return;
   }
-  const newPot = { name, type, value, employeeContrib: 0, employerContrib: 0, contribMode: 'pounds', owner: _addPotOwner };
+
+  // Read contributions from dynamic fields
+  let employeeContrib = 0, employerContrib = 0, contribMode = 'pounds';
+  if (type === 'pension') {
+    employeeContrib = parseFloat(document.getElementById('newPotEmployee').value) || 0;
+    employerContrib = parseFloat(document.getElementById('newPotEmployer').value) || 0;
+    contribMode = _addFormContribMode;
+  } else if (type !== 'db-pension') {
+    const monthlyEl = document.getElementById('newPotMonthly');
+    if (monthlyEl) employeeContrib = parseFloat(monthlyEl.value) || 0;
+  }
+
+  const newPot = { name, type, value, employeeContrib, employerContrib, contribMode, owner: _addPotOwner };
+
   if (type === 'db-pension') {
     newPot.value = 0;
     newPot.dbIncome = value || 0;
-    newPot.dbInflationLinked = true;
+    const inflEl = document.getElementById('newPotDbInflation');
+    newPot.dbInflationLinked = inflEl ? inflEl.checked : true;
+    const yearsEl = document.getElementById('newPotDbYears');
+    const accrualEl = document.getElementById('newPotDbAccrual');
+    const salaryEl = document.getElementById('newPotDbSalary');
+    if (yearsEl && parseFloat(yearsEl.value)) newPot.dbYears = parseFloat(yearsEl.value);
+    if (accrualEl) newPot.dbAccrual = parseInt(accrualEl.value) || 60;
+    if (salaryEl && parseFloat(salaryEl.value)) newPot.dbSalary = parseFloat(salaryEl.value);
   }
-  if (type === 'cash-isa') newPot.customRate = 4;
-  if (type === 'premium-bonds') newPot.customRate = 4.4;
+
+  // Custom rate from form field, or defaults
+  const rateEl = document.getElementById('newPotCustomRate');
+  if (rateEl) {
+    newPot.customRate = parseFloat(rateEl.value) || 0;
+  } else if (type === 'cash-isa') {
+    newPot.customRate = 4;
+  } else if (type === 'premium-bonds') {
+    newPot.customRate = 4.4;
+  }
+
   pots.push(newPot);
   closeAddForm();
   updateAll();
@@ -2304,6 +2450,7 @@ function closeAddForm() {
   addPotForm.classList.remove('open');
   addPotButtons.style.display = '';
   document.getElementById('partnerAddPotButtons').style.display = '';
+  document.getElementById('addPotDynamicFields').innerHTML = '';
 }
 
 // ── Chart ──
