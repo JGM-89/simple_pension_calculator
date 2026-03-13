@@ -540,6 +540,9 @@ h1 {
 .add-pot-form.open {
   display: block;
 }
+.add-pot-form.partner-form {
+  border-color: #7F77DD;
+}
 
 .add-pot-form h3 {
   font-size: 1rem;
@@ -2149,7 +2152,16 @@ let _addPotOwner = 'you'; // track which section opened the form
 
 function openAddForm(type, owner) {
   _addPotOwner = owner || 'you';
+  // Move form into the correct section
+  const targetSection = _addPotOwner === 'partner'
+    ? document.getElementById('partnerSection')
+    : document.getElementById('yourSection');
+  const targetButtons = _addPotOwner === 'partner'
+    ? document.getElementById('partnerAddPotButtons')
+    : addPotButtons;
+  targetSection.insertBefore(addPotForm, targetButtons);
   addPotForm.classList.add('open');
+  addPotForm.classList.toggle('partner-form', _addPotOwner === 'partner');
   addPotButtons.style.display = 'none';
   if (_addPotOwner === 'partner') document.getElementById('partnerAddPotButtons').style.display = 'none';
   document.getElementById('newPotName').value = '';
@@ -3191,6 +3203,15 @@ function generatePDF() {
   const deflator = Math.pow(1 + INFLATION_RATE, years);
   const futureSP = futureStatePension(years);
 
+  const pdfIsCouple = document.getElementById('coupleToggle').checked;
+  const partnerAge = parseInt(document.getElementById('partnerAge').value) || 18;
+  const partnerRetireAge = parseInt(document.getElementById('partnerRetireAge').value) || 67;
+  const partnerSalary = parseFloat(document.getElementById('partnerSalary').dataset.raw) || 0;
+  const partnerYears = Math.max(partnerRetireAge - partnerAge, 1);
+  const statePensionTotal = pdfIsCouple ? futureSP * 2 : futureSP;
+
+  const yourPots = pots.filter(p => p.owner !== 'partner');
+  const partnerPots = pots.filter(p => p.owner === 'partner');
   const dcPots = pots.filter(p => p.type !== 'db-pension');
   const dbPots = pots.filter(p => p.type === 'db-pension');
   const hasLisas = pots.some(p => isLisa(p.type));
@@ -3253,10 +3274,11 @@ function generatePDF() {
 
   const boxW = contentW * 0.55;
   const boxX = margin + (contentW - boxW) / 2;
+  const boxH = pdfIsCouple ? 72 : 48;
   doc.setFillColor(240, 248, 243);
   doc.setDrawColor(29, 158, 117);
   doc.setLineWidth(0.3);
-  doc.roundedRect(boxX, y, boxW, 48, 3, 3, 'FD');
+  doc.roundedRect(boxX, y, boxW, boxH, 3, 3, 'FD');
   y += 6;
 
   function boxLabelValue(doc, y, label, value) {
@@ -3270,13 +3292,18 @@ function generatePDF() {
     return y + 6;
   }
 
-  y = boxLabelValue(doc, y, 'Current age', currentAge + '');
-  y = boxLabelValue(doc, y, 'Retirement age', retireAge + '');
+  y = boxLabelValue(doc, y, pdfIsCouple ? 'Your age' : 'Current age', currentAge + '');
+  y = boxLabelValue(doc, y, pdfIsCouple ? 'Your retirement age' : 'Retirement age', retireAge + '');
   y = boxLabelValue(doc, y, 'Years to retirement', years + '');
   y = boxLabelValue(doc, y, 'Annual growth rate', Math.round(rate * 100) + '%');
-  y = boxLabelValue(doc, y, 'Annual salary', salary > 0 ? fmtPdf(salary) : 'Not specified');
+  y = boxLabelValue(doc, y, pdfIsCouple ? 'Your salary' : 'Annual salary', salary > 0 ? fmtPdf(salary) : 'Not specified');
+  if (pdfIsCouple) {
+    y = boxLabelValue(doc, y, 'Partner age', partnerAge + '');
+    y = boxLabelValue(doc, y, 'Partner retirement age', partnerRetireAge + '');
+    y = boxLabelValue(doc, y, 'Partner salary', partnerSalary > 0 ? fmtPdf(partnerSalary) : 'Not specified');
+  }
   y = boxLabelValue(doc, y, 'Inflation assumption', '2.5% per year');
-  y = boxLabelValue(doc, y, 'State pension (current)', fmtPdf(STATE_PENSION) + '/yr');
+  y = boxLabelValue(doc, y, 'State pension (current)', pdfIsCouple ? fmtPdf(STATE_PENSION) + '/yr each' : fmtPdf(STATE_PENSION) + '/yr');
   y += 5;
 
   // Growth chart
@@ -3327,19 +3354,21 @@ function generatePDF() {
   doc.text('Chart shows projected nominal pot values assuming ' + Math.round(rate * 100) + '% annual growth.', margin, y);
 
   // ═══════════ Pot Details (continue on same page if room) ═══════════
-  // Ensure section title + at least a few table rows fit together
-  flowBlock(12 + Math.min((dcPots.length + 2) * ROW_H, 3 * ROW_H), () => {
-    y = sectionTitle(doc, y, 'Your Retirement Pots');
-  });
 
-  // DC pots table
-  if (dcPots.length > 0) {
+  // Helper: render a DC pots table for a given set of pots
+  function renderDcTable(potsList, title, headColor) {
+    if (potsList.length === 0) return;
+    flowBlock(12 + Math.min((potsList.length + 2) * ROW_H, 3 * ROW_H), () => {
+      y = sectionTitle(doc, y, title);
+    });
+
     const tableHead = [['Pot name', 'Type', 'Current value', 'Monthly in', 'Projected value', 'Growth', '4% Drawdown']];
-    const tableBody = dcPots.map(pot => {
-      const projected = projectPot(pot, years, rate);
+    const tableBody = potsList.filter(p => p.type !== 'db-pension').map(pot => {
+      const yrs = pot.owner === 'partner' ? partnerYears : years;
+      const projected = projectPot(pot, yrs, rate);
       const monthly = getMonthlyContrib(pot);
-      const totalContribs = pot.value + getTotalContributions(pot, years);
-      const lisaBonus = getLisaBonusMonthly(pot) * getLisaContribYears(years) * 12;
+      const totalContribs = pot.value + getTotalContributions(pot, yrs);
+      const lisaBonus = getLisaBonusMonthly(pot) * getLisaContribYears(yrs) * 12;
       const totalIn = totalContribs + lisaBonus;
       const growth = projected - totalIn;
       const takeLump = showLump && pot.type === 'pension';
@@ -3349,24 +3378,19 @@ function generatePDF() {
       let monthlyStr = fmtPdf(monthly) + '/mo';
       if (lisaBonus > 0) monthlyStr += ' + ' + fmtPdf(getLisaBonusMonthly(pot) * 12) + ' bonus/yr';
 
-      return [
-        pot.name,
-        potTypeLabel(pot.type),
-        fmtPdf(pot.value),
-        monthlyStr,
-        fmtPdf(projected),
-        fmtPdf(growth),
-        fmtPdf(drawdown) + '/yr'
-      ];
+      return [pot.name, potTypeLabel(pot.type), fmtPdf(pot.value), monthlyStr, fmtPdf(projected), fmtPdf(growth), fmtPdf(drawdown) + '/yr'];
     });
+
+    if (tableBody.length === 0) return;
 
     // Totals row
     let totalCurrent = 0, totalMonthly = 0, totalProjected = 0, totalGrowth = 0, totalDrawdown = 0;
-    dcPots.forEach(pot => {
-      const projected = projectPot(pot, years, rate);
+    potsList.filter(p => p.type !== 'db-pension').forEach(pot => {
+      const yrs = pot.owner === 'partner' ? partnerYears : years;
+      const projected = projectPot(pot, yrs, rate);
       const monthly = getMonthlyContrib(pot);
-      const totalContribs = pot.value + getTotalContributions(pot, years);
-      const lisaBonus = getLisaBonusMonthly(pot) * getLisaContribYears(years) * 12;
+      const totalContribs = pot.value + getTotalContributions(pot, yrs);
+      const lisaBonus = getLisaBonusMonthly(pot) * getLisaContribYears(yrs) * 12;
       const totalIn = totalContribs + lisaBonus;
       totalCurrent += pot.value;
       totalMonthly += monthly;
@@ -3377,8 +3401,7 @@ function generatePDF() {
       totalDrawdown += drawdownBase * DRAWDOWN_RATE;
     });
     tableBody.push([
-      { content: 'TOTAL', styles: { fontStyle: 'bold' } },
-      '',
+      { content: 'TOTAL', styles: { fontStyle: 'bold' } }, '',
       { content: fmtPdf(totalCurrent), styles: { fontStyle: 'bold' } },
       { content: fmtPdf(totalMonthly) + '/mo', styles: { fontStyle: 'bold' } },
       { content: fmtPdf(totalProjected), styles: { fontStyle: 'bold' } },
@@ -3392,27 +3415,25 @@ function generatePDF() {
       body: tableBody,
       margin: { left: margin, right: margin, bottom: footerZone },
       styles: { fontSize: 8, cellPadding: 2 },
-      headStyles: { fillColor: [29, 158, 117], textColor: 255, fontStyle: 'bold' },
+      headStyles: { fillColor: headColor, textColor: 255, fontStyle: 'bold' },
       alternateRowStyles: { fillColor: [245, 245, 245] },
-      columnStyles: {
-        0: { cellWidth: 32 },
-        1: { cellWidth: 22 },
-      },
+      columnStyles: { 0: { cellWidth: 32 }, 1: { cellWidth: 22 } },
     });
     y = doc.lastAutoTable.finalY + 6;
   }
 
-  // DB pensions
-  if (hasDB) {
-    flowBlock(5 + (dbPots.length + 1) * ROW_H, () => {});
+  // Helper: render a DB pensions table for a given set
+  function renderDbTable(dbList, title, headColor) {
+    if (dbList.length === 0) return;
+    flowBlock(5 + (dbList.length + 1) * ROW_H, () => {});
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(40);
-    doc.text('Defined Benefit Pensions', margin, y);
+    doc.text(title, margin, y);
     y += 5;
 
     const dbHead = [['Scheme name', 'Annual income', 'Monthly income', 'Inflation-linked']];
-    const dbBody = dbPots.map(pot => [
+    const dbBody = dbList.map(pot => [
       pot.name,
       fmtPdf(pot.dbIncome || 0) + '/yr',
       fmtPdf((pot.dbIncome || 0) / 12) + '/mo',
@@ -3425,22 +3446,37 @@ function generatePDF() {
       body: dbBody,
       margin: { left: margin, right: margin, bottom: footerZone },
       styles: { fontSize: 9, cellPadding: 2 },
-      headStyles: { fillColor: [99, 153, 34], textColor: 255, fontStyle: 'bold' },
+      headStyles: { fillColor: headColor, textColor: 255, fontStyle: 'bold' },
       alternateRowStyles: { fillColor: [245, 245, 245] },
     });
     y = doc.lastAutoTable.finalY + 6;
   }
 
+  if (pdfIsCouple) {
+    renderDcTable(yourPots, 'Your Retirement Pots', [29, 158, 117]);
+    const yourDbPots = dbPots.filter(p => p.owner !== 'partner');
+    if (yourDbPots.length) renderDbTable(yourDbPots, 'Your Defined Benefit Pensions', [99, 153, 34]);
+    renderDcTable(partnerPots, "Partner's Retirement Pots", [127, 119, 221]);
+    const partnerDbPots = dbPots.filter(p => p.owner === 'partner');
+    if (partnerDbPots.length) renderDbTable(partnerDbPots, "Partner's Defined Benefit Pensions", [127, 119, 221]);
+  } else {
+    renderDcTable(pots, 'Your Retirement Pots', [29, 158, 117]);
+    renderDbTable(dbPots, 'Defined Benefit Pensions', [99, 153, 34]);
+  }
+
   // State pension
-  flowBlock(25, () => {});
+  flowBlock(pdfIsCouple ? 35 : 25, () => {});
   doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(40);
   doc.text('State Pension', margin, y);
   y += 6;
-  y = labelValue(doc, y, 'Current full rate', fmtPdf(STATE_PENSION) + '/yr');
-  y = labelValue(doc, y, 'Projected at retirement (inflated 2.5%/yr)', fmtPdf(futureSP) + '/yr');
-  y = labelValue(doc, y, 'Monthly at retirement', fmtPdf(futureSP / 12) + '/mo');
+  y = labelValue(doc, y, 'Current full rate', fmtPdf(STATE_PENSION) + '/yr per person');
+  y = labelValue(doc, y, 'Projected at retirement (inflated 2.5%/yr)', fmtPdf(futureSP) + '/yr per person');
+  if (pdfIsCouple) {
+    y = labelValue(doc, y, 'Combined state pension (×2)', fmtPdf(statePensionTotal) + '/yr');
+  }
+  y = labelValue(doc, y, 'Monthly at retirement' + (pdfIsCouple ? ' (combined)' : ''), fmtPdf(statePensionTotal / 12) + '/mo');
 
   // Lump sum summary
   if (showLump && hasPensions) {
@@ -3470,7 +3506,8 @@ function generatePDF() {
     let drawdown = 0, annuity = 0, lump = 0, dbInc = 0;
     dbPots.forEach(pot => { dbInc += pot.dbIncome || 0; });
     const rows = dcPots.map(pot => {
-      const projected = projectPot(pot, years, rate);
+      const yrs = pot.owner === 'partner' ? partnerYears : years;
+      const projected = projectPot(pot, yrs, rate);
       const takeLump = withLump && pot.type === 'pension';
       const potLump = pot.type === 'pension' ? projected * 0.25 : 0;
       if (takeLump) lump += potLump;
@@ -3479,10 +3516,10 @@ function generatePDF() {
       const aInc = base * getAnnuityRate(pot.type);
       drawdown += dInc;
       annuity += aInc;
-      return { name: pot.name, type: pot.type, projected, dInc, aInc };
+      return { name: pot.name, type: pot.type, projected, dInc, aInc, owner: pot.owner };
     });
-    drawdown += futureSP + dbInc;
-    annuity += futureSP + dbInc;
+    drawdown += statePensionTotal + dbInc;
+    annuity += statePensionTotal + dbInc;
     return { rows, drawdown, annuity, lump, dbInc };
   }
 
@@ -3491,16 +3528,36 @@ function generatePDF() {
 
   const buildIncomeTable = (data, startY) => {
     const rows = [];
-    data.rows.forEach(r => {
-      rows.push([r.name, potTypeLabel(r.type), fmtPdf(r.projected), fmtPdf(r.dInc) + '/yr', getAnnuityLabel(r.type), fmtPdf(r.aInc) + '/yr']);
-    });
-    dbPots.forEach(pot => {
-      const inc = pot.dbIncome || 0;
-      rows.push([pot.name, 'DB Pension', 'N/A', fmtPdf(inc) + '/yr', 'N/A', fmtPdf(inc) + '/yr']);
-    });
-    rows.push(['State Pension', '', 'N/A', fmtPdf(futureSP) + '/yr', '', fmtPdf(futureSP) + '/yr']);
+    if (pdfIsCouple) {
+      // Group by owner
+      const yourRows = data.rows.filter(r => r.owner !== 'partner');
+      const partnerRows = data.rows.filter(r => r.owner === 'partner');
+      const yourDb = dbPots.filter(p => p.owner !== 'partner');
+      const partnerDb = dbPots.filter(p => p.owner === 'partner');
+      if (yourRows.length || yourDb.length) {
+        rows.push([{ content: 'YOUR INCOME', colSpan: 6, styles: { fontStyle: 'bold', fillColor: [240, 248, 243], textColor: [29, 158, 117] } }]);
+        yourRows.forEach(r => rows.push([r.name, potTypeLabel(r.type), fmtPdf(r.projected), fmtPdf(r.dInc) + '/yr', getAnnuityLabel(r.type), fmtPdf(r.aInc) + '/yr']));
+        yourDb.forEach(pot => { const inc = pot.dbIncome || 0; rows.push([pot.name, 'DB Pension', 'N/A', fmtPdf(inc) + '/yr', 'N/A', fmtPdf(inc) + '/yr']); });
+        rows.push(['Your state pension', '', 'N/A', fmtPdf(futureSP) + '/yr', '', fmtPdf(futureSP) + '/yr']);
+      }
+      if (partnerRows.length || partnerDb.length) {
+        rows.push([{ content: "PARTNER'S INCOME", colSpan: 6, styles: { fontStyle: 'bold', fillColor: [243, 240, 255], textColor: [127, 119, 221] } }]);
+        partnerRows.forEach(r => rows.push([r.name, potTypeLabel(r.type), fmtPdf(r.projected), fmtPdf(r.dInc) + '/yr', getAnnuityLabel(r.type), fmtPdf(r.aInc) + '/yr']));
+        partnerDb.forEach(pot => { const inc = pot.dbIncome || 0; rows.push([pot.name, 'DB Pension', 'N/A', fmtPdf(inc) + '/yr', 'N/A', fmtPdf(inc) + '/yr']); });
+        rows.push(["Partner's state pension", '', 'N/A', fmtPdf(futureSP) + '/yr', '', fmtPdf(futureSP) + '/yr']);
+      }
+    } else {
+      data.rows.forEach(r => {
+        rows.push([r.name, potTypeLabel(r.type), fmtPdf(r.projected), fmtPdf(r.dInc) + '/yr', getAnnuityLabel(r.type), fmtPdf(r.aInc) + '/yr']);
+      });
+      dbPots.forEach(pot => {
+        const inc = pot.dbIncome || 0;
+        rows.push([pot.name, 'DB Pension', 'N/A', fmtPdf(inc) + '/yr', 'N/A', fmtPdf(inc) + '/yr']);
+      });
+      rows.push(['State Pension', '', 'N/A', fmtPdf(futureSP) + '/yr', '', fmtPdf(futureSP) + '/yr']);
+    }
     rows.push([
-      { content: 'TOTAL', styles: { fontStyle: 'bold' } }, '', '',
+      { content: pdfIsCouple ? 'COMBINED TOTAL' : 'TOTAL', styles: { fontStyle: 'bold' } }, '', '',
       { content: fmtPdf(data.drawdown) + '/yr', styles: { fontStyle: 'bold', textColor: [29, 158, 117] } }, '',
       { content: fmtPdf(data.annuity) + '/yr', styles: { fontStyle: 'bold', textColor: [29, 158, 117] } }
     ]);
@@ -3545,7 +3602,7 @@ function generatePDF() {
   }
 
   // ═══════════ Income Projection Renderer ═══════════
-  const incomeTableRows = dcPots.length + dbPots.length + 3; // pots + state pension + total + header
+  const incomeTableRows = dcPots.length + dbPots.length + 3 + (pdfIsCouple ? 4 : 0); // pots + state pension + total + header + couple group rows
   const INCOME_TABLE_H = incomeTableRows * ROW_H;
   const COMPARISON_BOX_H = 54; // sectionTitle(12) + box(34) + fine print(8)
   const SECTION_TITLE_H = 12;
