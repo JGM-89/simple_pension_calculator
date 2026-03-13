@@ -2048,7 +2048,7 @@ function renderPots() {
   });
 
   // Value editing — show formatted on blur, raw on focus
-  qAll('.pot-value-input').forEach(input => {
+  qAll('.pot-value-input:not(.db-income-input)').forEach(input => {
     input.addEventListener('focus', e => {
       e.target.value = e.target.dataset.raw;
     });
