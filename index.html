@@ -273,36 +273,55 @@ h1 {
 
 .db-helper-btn:hover { opacity: 0.9; }
 
-/* ── Pot owner badge ── */
-.pot-owner-badge {
-  font-size: 0.65rem;
+/* ── Couple mode toggle ── */
+.couple-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  border: 0.5px solid var(--color-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.couple-toggle-btn {
+  padding: 4px 14px;
+  font-size: 0.75rem;
   font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 99px;
-  border: 1.5px dashed var(--color-text-secondary);
+  border: none;
+  background: transparent;
   color: var(--color-text-secondary);
   cursor: pointer;
-  background: transparent;
-  transition: all 0.15s;
+  transition: background 0.15s, color 0.15s;
 }
 
-.pot-owner-badge::after {
-  content: ' \21C4';
-  font-size: 0.7rem;
+.couple-toggle-btn.active {
+  background: var(--color-accent-green);
+  color: #fff;
 }
 
-.pot-owner-badge:hover {
-  background: var(--color-input-bg);
-  border-style: solid;
-  border-color: var(--color-accent-green);
-  color: var(--color-accent-green);
+/* ── Partner section ── */
+.partner-section {
+  margin-top: 24px;
+  border: 1.5px solid #7F77DD;
+  border-radius: 12px;
+  padding: 16px;
+  background: rgba(127, 119, 221, 0.05);
 }
 
-.pot-owner-badge.partner {
-  border-color: #7F77DD;
-  border-style: solid;
+.partner-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.partner-section-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
   color: #7F77DD;
-  background: rgba(127, 119, 221, 0.1);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .pot-rate-group {
@@ -1315,23 +1334,11 @@ h1 {
     <input type="text" id="salary" value="" data-raw="0" class="salary-display" placeholder="£0">
   </div>
   <div class="control-group" style="justify-content:center">
-    <label class="lump-sum-toggle" style="margin:0"><input type="checkbox" id="coupleToggle"> Couple</label>
-  </div>
-</div>
-
-<!-- Partner controls (hidden by default) -->
-<div class="controls" id="partnerControls" style="display:none">
-  <div class="control-group">
-    <label for="partnerAge">Partner age</label>
-    <input type="number" id="partnerAge" value="" min="18" max="99" class="salary-display" style="width:60px" placeholder="18">
-  </div>
-  <div class="control-group">
-    <label for="partnerRetireAge">Partner retires at <span class="control-value" id="partnerRetireAgeValue">67</span></label>
-    <input type="range" id="partnerRetireAge" min="37" max="100" value="67">
-  </div>
-  <div class="control-group">
-    <label for="partnerSalary">Partner salary</label>
-    <input type="text" id="partnerSalary" value="" data-raw="0" class="salary-display" placeholder="£0">
+    <div class="couple-toggle" id="coupleToggleWrap">
+      <button class="couple-toggle-btn active" data-mode="single">Single</button>
+      <button class="couple-toggle-btn" data-mode="couple">Couple</button>
+    </div>
+    <input type="checkbox" id="coupleToggle" style="display:none">
   </div>
 </div>
 
@@ -1348,6 +1355,38 @@ h1 {
   <button class="add-pot-btn" id="addCashLisaBtn" type="button">+ Add Cash LISA</button>
   <button class="add-pot-btn" id="addPremiumBondsBtn" type="button">+ Add Premium Bonds</button>
   <button class="add-pot-btn" id="addDbPensionBtn" type="button">+ Add DB pension</button>
+</div>
+
+<!-- Partner section (hidden by default) -->
+<div class="partner-section" id="partnerSection" style="display:none">
+  <div class="partner-section-header">
+    <h3>Partner's Pots</h3>
+  </div>
+  <div class="controls" style="margin-bottom:12px">
+    <div class="control-group">
+      <label for="partnerAge">Partner age</label>
+      <input type="number" id="partnerAge" value="" min="18" max="99" class="salary-display" style="width:60px" placeholder="18">
+    </div>
+    <div class="control-group">
+      <label for="partnerRetireAge">Partner retires at <span class="control-value" id="partnerRetireAgeValue">67</span></label>
+      <input type="range" id="partnerRetireAge" min="37" max="100" value="67">
+    </div>
+    <div class="control-group">
+      <label for="partnerSalary">Partner salary</label>
+      <input type="text" id="partnerSalary" value="" data-raw="0" class="salary-display" placeholder="£0">
+    </div>
+  </div>
+  <div class="pots-grid" id="partnerPotsGrid"></div>
+  <div class="add-pot-buttons" id="partnerAddPotButtons">
+    <button class="add-pot-btn partner-add-btn" data-type="pension" type="button">+ Add pension</button>
+    <button class="add-pot-btn partner-add-btn" data-type="isa" type="button">+ Add S&amp;S ISA</button>
+    <button class="add-pot-btn partner-add-btn" data-type="gia" type="button">+ Add GIA</button>
+    <button class="add-pot-btn partner-add-btn" data-type="cash-isa" type="button">+ Add Cash ISA</button>
+    <button class="add-pot-btn partner-add-btn" data-type="lisa" type="button">+ Add S&amp;S LISA</button>
+    <button class="add-pot-btn partner-add-btn" data-type="cash-lisa" type="button">+ Add Cash LISA</button>
+    <button class="add-pot-btn partner-add-btn" data-type="premium-bonds" type="button">+ Add Premium Bonds</button>
+    <button class="add-pot-btn partner-add-btn" data-type="db-pension" type="button">+ Add DB pension</button>
+  </div>
 </div>
 
 <div class="add-pot-form" id="addPotForm">
@@ -1747,8 +1786,15 @@ function getGiaCgtOnDrawdown(pot, years, rate) {
 
 // ── Render pot cards ──
 function renderPots() {
+  const partnerPotsGrid = document.getElementById('partnerPotsGrid');
   potsGrid.innerHTML = '';
+  if (partnerPotsGrid) partnerPotsGrid.innerHTML = '';
+
   pots.forEach((pot, i) => {
+    const isPartnerPot = pot.owner === 'partner';
+    const targetGrid = isPartnerPot ? partnerPotsGrid : potsGrid;
+    if (!targetGrid) return;
+
     const card = document.createElement('div');
     card.className = 'pot-card';
     const color = PALETTE[i % PALETTE.length];
@@ -1757,17 +1803,12 @@ function renderPots() {
     const unit = isPct ? '%' : '£';
     const safeName = escapeHTML(pot.name);
 
-    const isCouple = document.getElementById('coupleToggle').checked;
-    const ownerLabel = pot.owner === 'partner' ? 'Partner' : 'You';
-    const ownerBadge = isCouple ? `<button class="pot-owner-badge ${pot.owner === 'partner' ? 'partner' : ''}" data-index="${i}" title="Click to assign to ${pot.owner === 'partner' ? 'you' : 'partner'}">${ownerLabel}</button>` : '';
-
     // DB pension has a completely different card layout
     if (pot.type === 'db-pension') {
       card.innerHTML = `
         <div class="pot-card-header">
           <input class="pot-name" type="text" value="${safeName}" data-index="${i}">
           <button class="pot-type-badge ${potBadgeClass(pot.type)}" data-index="${i}" title="Click to change type">${potTypeLabel(pot.type)}</button>
-          ${ownerBadge}
         </div>
         <div class="pot-value-group">
           <label class="pot-value-label">Annual income (£/yr)</label>
@@ -1808,27 +1849,29 @@ function renderPots() {
         </div>
         <button class="pot-remove" data-index="${i}" title="Remove pot">&times;</button>
       `;
-      potsGrid.appendChild(card);
+      targetGrid.appendChild(card);
       return;
     }
 
     // Build contribution section based on pot type
     let contribHTML = '';
     if (isPension) {
-      const salary = parseFloat(salaryInput.dataset.raw) || 0;
+      const salaryEl = isPartnerPot ? document.getElementById('partnerSalary') : salaryInput;
+      const salary = parseFloat(salaryEl.dataset.raw) || 0;
       const monthlyEquiv = isPct ? fmt(((pot.employeeContrib + pot.employerContrib) / 100) * salary / 12) + '/mo' : '';
       contribHTML = `
+        <label class="pot-value-label" style="margin-top:8px">Monthly contributions</label>
         <div class="contrib-mode-toggle" data-index="${i}">
           <button class="contrib-mode-btn ${!isPct ? 'active' : ''}" data-mode="pounds">£</button>
           <button class="contrib-mode-btn ${isPct ? 'active' : ''}" data-mode="percent">% salary</button>
         </div>
         <div class="pot-contrib-row">
           <div class="pot-contrib-field">
-            <label>${isPct ? 'Your (%)' : 'Your monthly (£)'}</label>
+            <label>${isPct ? 'You (%)' : 'You (£)'}</label>
             <input type="number" min="0" step="${isPct ? '0.5' : '1'}" value="${pot.employeeContrib}" data-index="${i}" class="employee-contrib-input">
           </div>
           <div class="pot-contrib-field">
-            <label>${isPct ? 'Employer (%)' : 'Employer monthly (£)'}</label>
+            <label>${isPct ? 'Employer (%)' : 'Employer (£)'}</label>
             <input type="number" min="0" step="${isPct ? '0.5' : '1'}" value="${pot.employerContrib}" data-index="${i}" class="employer-contrib-input">
           </div>
         </div>
@@ -1861,7 +1904,6 @@ function renderPots() {
       <div class="pot-card-header">
         <input class="pot-name" type="text" value="${safeName}" data-index="${i}">
         <button class="pot-type-badge ${potBadgeClass(pot.type)}" data-index="${i}" title="Click to change type">${potTypeLabel(pot.type)}</button>
-        ${ownerBadge}
       </div>
       <div class="pot-value-group">
         <label class="pot-value-label">Current value</label>
@@ -1871,11 +1913,15 @@ function renderPots() {
       ${contribHTML}
       <button class="pot-remove" data-index="${i}" title="Remove pot">&times;</button>
     `;
-    potsGrid.appendChild(card);
+    targetGrid.appendChild(card);
   });
 
+  // Helper to query both pot grids
+  const qAll = sel => document.querySelectorAll(`#potsGrid ${sel}, #partnerPotsGrid ${sel}`);
+  const qOne = sel => document.querySelector(`#potsGrid ${sel}, #partnerPotsGrid ${sel}`);
+
   // Name editing
-  potsGrid.querySelectorAll('.pot-name').forEach(input => {
+  qAll('.pot-name').forEach(input => {
     input.addEventListener('change', e => {
       pots[e.target.dataset.index].name = e.target.value;
       updateAll();
@@ -1883,7 +1929,7 @@ function renderPots() {
   });
 
   // Value editing — show formatted on blur, raw on focus
-  potsGrid.querySelectorAll('.pot-value-input').forEach(input => {
+  qAll('.pot-value-input').forEach(input => {
     input.addEventListener('focus', e => {
       e.target.value = e.target.dataset.raw;
     });
@@ -1902,14 +1948,14 @@ function renderPots() {
   });
 
   // Contribution editing
-  potsGrid.querySelectorAll('.employee-contrib-input').forEach(input => {
+  qAll('.employee-contrib-input').forEach(input => {
     input.addEventListener('input', e => {
       pots[e.target.dataset.index].employeeContrib = parseFloat(e.target.value) || 0;
       updateWithoutRerender();
     });
   });
 
-  potsGrid.querySelectorAll('.employer-contrib-input').forEach(input => {
+  qAll('.employer-contrib-input').forEach(input => {
     input.addEventListener('input', e => {
       pots[e.target.dataset.index].employerContrib = parseFloat(e.target.value) || 0;
       updateWithoutRerender();
@@ -1917,7 +1963,7 @@ function renderPots() {
   });
 
   // Custom rate editing (Cash ISA / Premium Bonds)
-  potsGrid.querySelectorAll('.custom-rate-input').forEach(input => {
+  qAll('.custom-rate-input').forEach(input => {
     input.addEventListener('input', e => {
       pots[e.target.dataset.index].customRate = parseFloat(e.target.value) || 0;
       updateWithoutRerender();
@@ -1925,7 +1971,7 @@ function renderPots() {
   });
 
   // Contribution mode toggle (pension only)
-  potsGrid.querySelectorAll('.contrib-mode-toggle').forEach(toggle => {
+  qAll('.contrib-mode-toggle').forEach(toggle => {
     toggle.querySelectorAll('.contrib-mode-btn').forEach(btn => {
       btn.addEventListener('click', e => {
         const idx = toggle.dataset.index;
@@ -1938,7 +1984,7 @@ function renderPots() {
   });
 
   // Toggle type: pension -> isa -> cash-isa -> premium-bonds -> pension
-  potsGrid.querySelectorAll('.pot-type-badge').forEach(btn => {
+  qAll('.pot-type-badge').forEach(btn => {
     btn.addEventListener('click', e => {
       const idx = e.target.dataset.index;
       const currentIdx = POT_TYPES.indexOf(pots[idx].type);
@@ -1960,7 +2006,7 @@ function renderPots() {
   });
 
   // DB pension income editing
-  potsGrid.querySelectorAll('.db-income-input').forEach(input => {
+  qAll('.db-income-input').forEach(input => {
     input.addEventListener('focus', e => {
       e.target.value = e.target.dataset.raw;
     });
@@ -1979,7 +2025,7 @@ function renderPots() {
   });
 
   // DB pension inflation-linked toggle
-  potsGrid.querySelectorAll('.db-inflation-input').forEach(input => {
+  qAll('.db-inflation-input').forEach(input => {
     input.addEventListener('change', e => {
       pots[e.target.dataset.index].dbInflationLinked = e.target.checked;
       updateWithoutRerender();
@@ -1987,20 +2033,20 @@ function renderPots() {
   });
 
   // DB helper toggle
-  potsGrid.querySelectorAll('.db-helper-toggle').forEach(btn => {
+  qAll('.db-helper-toggle').forEach(btn => {
     btn.addEventListener('click', e => {
-      const helper = potsGrid.querySelector(`.db-helper[data-index="${e.target.dataset.index}"]`);
+      const helper = qOne(`.db-helper[data-index="${e.target.dataset.index}"]`);
       if (helper) helper.classList.toggle('open');
     });
   });
 
   // DB helper calculate button
-  potsGrid.querySelectorAll('.db-helper-btn').forEach(btn => {
+  qAll('.db-helper-btn').forEach(btn => {
     btn.addEventListener('click', e => {
       const idx = e.target.dataset.index;
-      const years = parseFloat(potsGrid.querySelector(`.db-helper-years[data-index="${idx}"]`).value) || 0;
-      const accrual = parseInt(potsGrid.querySelector(`.db-helper-accrual[data-index="${idx}"]`).value) || 60;
-      const salary = parseFloat(potsGrid.querySelector(`.db-helper-salary[data-index="${idx}"]`).value) || 0;
+      const years = parseFloat(qOne(`.db-helper-years[data-index="${idx}"]`).value) || 0;
+      const accrual = parseInt(qOne(`.db-helper-accrual[data-index="${idx}"]`).value) || 60;
+      const salary = parseFloat(qOne(`.db-helper-salary[data-index="${idx}"]`).value) || 0;
       const income = Math.round((years / accrual) * salary);
       pots[idx].dbIncome = income;
       pots[idx].dbYears = years;
@@ -2010,17 +2056,8 @@ function renderPots() {
     });
   });
 
-  // Owner toggle (couple mode)
-  potsGrid.querySelectorAll('.pot-owner-badge').forEach(btn => {
-    btn.addEventListener('click', e => {
-      const idx = e.target.dataset.index;
-      pots[idx].owner = pots[idx].owner === 'partner' ? 'you' : 'partner';
-      updateAll();
-    });
-  });
-
-  // Remove
-  potsGrid.querySelectorAll('.pot-remove').forEach(btn => {
+  // Remove (both grids)
+  document.querySelectorAll('#potsGrid .pot-remove, #partnerPotsGrid .pot-remove').forEach(btn => {
     btn.addEventListener('click', e => {
       pots.splice(parseInt(e.target.dataset.index), 1);
       updateAll();
@@ -2046,14 +2083,19 @@ const formConfig = {
   'db-pension': { title: 'Add a defined benefit pension', placeholder: 'e.g. NHS Pension' },
 };
 
-function openAddForm(type) {
+let _addPotOwner = 'you'; // track which section opened the form
+
+function openAddForm(type, owner) {
+  _addPotOwner = owner || 'you';
   addPotForm.classList.add('open');
   addPotButtons.style.display = 'none';
+  if (_addPotOwner === 'partner') document.getElementById('partnerAddPotButtons').style.display = 'none';
   document.getElementById('newPotName').value = '';
   document.getElementById('newPotValue').value = '';
   document.getElementById('newPotType').value = type;
   const cfg = formConfig[type] || { title: 'Add a new pot', placeholder: '' };
-  document.getElementById('addPotFormTitle').textContent = cfg.title;
+  const prefix = _addPotOwner === 'partner' ? "Partner: " : "";
+  document.getElementById('addPotFormTitle').textContent = prefix + cfg.title;
   document.getElementById('newPotName').placeholder = cfg.placeholder;
   document.querySelector('label[for="newPotValue"]').textContent = type === 'db-pension' ? 'Expected annual income (£/yr)' : 'Current value (£)';
   document.getElementById('newPotName').focus();
@@ -2068,6 +2110,11 @@ document.getElementById('addCashLisaBtn').addEventListener('click', () => openAd
 addPremiumBondsBtn.addEventListener('click', () => openAddForm('premium-bonds'));
 document.getElementById('addDbPensionBtn').addEventListener('click', () => openAddForm('db-pension'));
 
+// Partner add-pot buttons
+document.querySelectorAll('.partner-add-btn').forEach(btn => {
+  btn.addEventListener('click', () => openAddForm(btn.dataset.type, 'partner'));
+});
+
 cancelPotBtn.addEventListener('click', closeAddForm);
 
 submitPotBtn.addEventListener('click', () => {
@@ -2078,7 +2125,7 @@ submitPotBtn.addEventListener('click', () => {
     document.getElementById('newPotName').focus();
     return;
   }
-  const newPot = { name, type, value, employeeContrib: 0, employerContrib: 0, contribMode: 'pounds' };
+  const newPot = { name, type, value, employeeContrib: 0, employerContrib: 0, contribMode: 'pounds', owner: _addPotOwner };
   if (type === 'db-pension') {
     newPot.value = 0;
     newPot.dbIncome = value || 0;
@@ -2094,6 +2141,7 @@ submitPotBtn.addEventListener('click', () => {
 function closeAddForm() {
   addPotForm.classList.remove('open');
   addPotButtons.style.display = '';
+  document.getElementById('partnerAddPotButtons').style.display = '';
 }
 
 // ── Chart ──
@@ -2834,10 +2882,15 @@ document.getElementById('inflationToggle').addEventListener('change', () => {
   saveState();
 });
 
-// Couple mode
-document.getElementById('coupleToggle').addEventListener('change', () => {
-  document.getElementById('partnerControls').style.display = document.getElementById('coupleToggle').checked ? '' : 'none';
-  updateAll();
+// Couple mode pill toggle
+document.getElementById('coupleToggleWrap').querySelectorAll('.couple-toggle-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const isCouple = btn.dataset.mode === 'couple';
+    document.getElementById('coupleToggle').checked = isCouple;
+    document.getElementById('coupleToggleWrap').querySelectorAll('.couple-toggle-btn').forEach(b => b.classList.toggle('active', b === btn));
+    document.getElementById('partnerSection').style.display = isCouple ? '' : 'none';
+    updateAll();
+  });
 });
 
 document.getElementById('partnerAge').addEventListener('input', () => updateAll());
@@ -2875,7 +2928,10 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   document.getElementById('lumpSumToggle').checked = false;
   document.getElementById('inflationToggle').checked = false;
   document.getElementById('coupleToggle').checked = false;
-  document.getElementById('partnerControls').style.display = 'none';
+  document.getElementById('partnerSection').style.display = 'none';
+  document.getElementById('coupleToggleWrap').querySelectorAll('.couple-toggle-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === 'single');
+  });
   document.getElementById('partnerAge').value = '';
   document.getElementById('partnerRetireAge').value = 67;
   document.getElementById('partnerRetireAgeValue').textContent = '67';
@@ -2959,7 +3015,11 @@ if (saved) {
   if (saved.showReal) document.getElementById('inflationToggle').checked = true;
   if (saved.coupleMode) {
     document.getElementById('coupleToggle').checked = true;
-    document.getElementById('partnerControls').style.display = '';
+    document.getElementById('partnerSection').style.display = '';
+    // Update pill toggle buttons
+    document.getElementById('coupleToggleWrap').querySelectorAll('.couple-toggle-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.mode === 'couple');
+    });
   }
   if (saved.partnerAge) document.getElementById('partnerAge').value = saved.partnerAge;
   if (saved.partnerRetireAge) {
