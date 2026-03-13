@@ -180,6 +180,17 @@ h1 {
   background: #D4537E;
 }
 
+.pot-type-badge.db-pension {
+  background: #639922;
+}
+
+.db-pension-note {
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  margin-top: 4px;
+}
+
 .pot-rate-group {
   display: flex;
   flex-direction: column;
@@ -727,6 +738,153 @@ h1 {
   font-weight: 600;
 }
 
+/* ── Summary breakdown ── */
+.summary-card-breakdown {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+}
+
+/* ── Monthly sub ── */
+.monthly-sub {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  font-weight: 400;
+}
+
+.income-item-monthly {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+/* ── Lump sum toggle ── */
+.lump-sum-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.lump-sum-toggle input {
+  accent-color: var(--color-accent-green);
+}
+
+.summary-card-lump {
+  font-size: 0.8rem;
+  color: var(--color-accent-green);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* ── Reset button ── */
+.reset-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 4px 0;
+}
+
+.reset-btn:hover {
+  color: #D85A30;
+}
+
+/* ── Header row ── */
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.header-row h1 {
+  margin-bottom: 0;
+}
+
+/* ── Target tab ── */
+.target-input-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.target-input-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.target-input-group input {
+  width: 160px;
+  padding: 8px 12px;
+  border: 0.5px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-input-bg);
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.target-bar {
+  background: var(--color-surface);
+  border: 0.5px solid var(--color-border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.target-bar-label {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 6px;
+}
+
+.target-bar-track {
+  height: 24px;
+  background: var(--color-input-bg);
+  border-radius: 99px;
+  overflow: hidden;
+  position: relative;
+}
+
+.target-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.3s;
+}
+
+.target-bar-pct {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+.target-shortfall {
+  background: var(--color-surface);
+  border: 0.5px solid var(--color-border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.target-shortfall-label {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+
+.target-shortfall-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
 @media (max-width: 540px) {
   body { padding: 14px; }
   .controls { flex-direction: column; }
@@ -738,7 +896,10 @@ h1 {
 </head>
 <body>
 
-<h1>Retirement Planner</h1>
+<div class="header-row">
+  <h1>Retirement Planner</h1>
+  <button class="reset-btn" id="resetBtn" type="button">Reset to defaults</button>
+</div>
 
 <!-- 1. Controls -->
 <div class="controls">
@@ -769,6 +930,7 @@ h1 {
   <button class="add-pot-btn" id="addIsaBtn" type="button">+ Add ISA</button>
   <button class="add-pot-btn" id="addCashIsaBtn" type="button">+ Add Cash ISA</button>
   <button class="add-pot-btn" id="addPremiumBondsBtn" type="button">+ Add Premium Bonds</button>
+  <button class="add-pot-btn" id="addDbPensionBtn" type="button">+ Add DB pension</button>
 </div>
 
 <div class="add-pot-form" id="addPotForm">
@@ -800,6 +962,7 @@ h1 {
 </div>
 
 <!-- 6. Pot summary cards -->
+<label class="lump-sum-toggle"><input type="checkbox" id="lumpSumToggle"> Show 25% tax-free pension lump sum</label>
 <div class="summary-grid" id="summaryGrid"></div>
 
 <!-- 7. Totals row -->
@@ -810,11 +973,13 @@ h1 {
   <button class="tab-btn active" data-tab="drawdown">Drawdown</button>
   <button class="tab-btn" data-tab="annuity">Annuity</button>
   <button class="tab-btn" data-tab="compare">Compare</button>
+  <button class="tab-btn" data-tab="target">Target</button>
 </div>
 
 <div class="tab-panel active" id="tab-drawdown"></div>
 <div class="tab-panel" id="tab-annuity"></div>
 <div class="tab-panel" id="tab-compare"></div>
+<div class="tab-panel" id="tab-target"></div>
 
 <!-- 9. Disclaimers -->
 <div class="disclaimers">
@@ -826,6 +991,7 @@ h1 {
     <li>Drawdown uses a fixed 4% withdrawal rate (the "4% rule"). This is a common guideline, not a guarantee of sustainable income.</li>
     <li>Annuity rates shown are illustrative (5% pension, 4% ISA, 3% Cash ISA). Actual annuity quotes depend on age, health, and market conditions at the time of purchase.</li>
     <li>Premium Bonds use the NS&amp;I prize fund rate as an expected return. Actual returns are probabilistic and may differ significantly, especially for smaller holdings.</li>
+    <li>Defined benefit pensions provide guaranteed income based on salary and years of service. The income figure shown is what you enter — check your annual benefit statement for your projected amount.</li>
     <li>Tax implications (income tax on pension withdrawals, tax-free ISA status) are not modelled. Seek professional advice for tax planning.</li>
     <li>This tool is for illustration only and does not constitute financial advice. Consider consulting a qualified financial adviser.</li>
   </ul>
@@ -837,7 +1003,7 @@ const PALETTE = ['#7F77DD','#1D9E75','#378ADD','#D85A30','#BA7517','#D4537E','#6
 const STATE_PENSION = 11500;
 const DRAWDOWN_RATE = 0.04;
 const INFLATION_RATE = 0.025;
-const POT_TYPES = ['pension', 'isa', 'cash-isa', 'premium-bonds'];
+const POT_TYPES = ['pension', 'isa', 'cash-isa', 'premium-bonds', 'db-pension'];
 
 // ── localStorage ──
 function saveState() {
@@ -848,6 +1014,8 @@ function saveState() {
     annualRate: annualRateInput.value,
     salary: salaryInput.dataset.raw,
     showTotal: document.getElementById('showTotalLine').checked,
+    showLumpSum: document.getElementById('lumpSumToggle').checked,
+    targetIncome: document.getElementById('targetIncomeInput') ? document.getElementById('targetIncomeInput').dataset.raw || '30000' : '30000',
   };
   try { localStorage.setItem('retirementPlanner', JSON.stringify(state)); } catch(e) {}
 }
@@ -893,6 +1061,7 @@ function escapeHTML(str) {
 }
 
 function getMonthlyContrib(pot) {
+  if (pot.type === 'db-pension') return 0;
   const salary = parseFloat(salaryInput.dataset.raw) || 0;
   if (pot.contribMode === 'percent') {
     return ((pot.employeeContrib + pot.employerContrib) / 100) * salary / 12;
@@ -940,12 +1109,17 @@ function projectPotByYear(pot, years, rate) {
   return values;
 }
 
+function getTotalContributions(pot, years) {
+  return getMonthlyContrib(pot) * years * 12;
+}
+
 function potTypeLabel(type) {
   switch(type) {
     case 'pension': return 'Pension';
     case 'isa': return 'ISA';
     case 'cash-isa': return 'Cash ISA';
     case 'premium-bonds': return 'Premium Bonds';
+    case 'db-pension': return 'DB Pension';
     default: return type;
   }
 }
@@ -955,6 +1129,7 @@ function potBadgeClass(type) {
     case 'isa': return 'isa';
     case 'cash-isa': return 'cash-isa';
     case 'premium-bonds': return 'premium-bonds';
+    case 'db-pension': return 'db-pension';
     default: return '';
   }
 }
@@ -978,6 +1153,30 @@ function renderPots() {
     const isPct = pot.contribMode === 'percent';
     const unit = isPct ? '%' : '£';
     const safeName = escapeHTML(pot.name);
+
+    // DB pension has a completely different card layout
+    if (pot.type === 'db-pension') {
+      card.innerHTML = `
+        <div class="pot-card-header">
+          <input class="pot-name" type="text" value="${safeName}" data-index="${i}">
+          <button class="pot-type-badge ${potBadgeClass(pot.type)}" data-index="${i}" title="Click to change type">${potTypeLabel(pot.type)}</button>
+        </div>
+        <div class="pot-value-group">
+          <label class="pot-value-label">Annual income (£/yr)</label>
+          <input type="text" value="${fmt(pot.dbIncome || 0)}" data-index="${i}" data-raw="${pot.dbIncome || 0}" class="pot-value-input db-income-input" style="color:${color}">
+        </div>
+        <div>
+          <label style="display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--color-text-secondary);cursor:pointer;margin-top:8px">
+            <input type="checkbox" ${pot.dbInflationLinked ? 'checked' : ''} data-index="${i}" class="db-inflation-input" style="accent-color:var(--color-accent-green)">
+            Inflation-linked
+          </label>
+        </div>
+        <div class="db-pension-note">Guaranteed income — no pot to invest</div>
+        ${pots.length > 1 ? `<button class="pot-remove" data-index="${i}" title="Remove pot">&times;</button>` : ''}
+      `;
+      potsGrid.appendChild(card);
+      return;
+    }
 
     // Build contribution section based on pot type
     let contribHTML = '';
@@ -1110,7 +1309,11 @@ function renderPots() {
       const currentIdx = POT_TYPES.indexOf(pots[idx].type);
       const nextType = POT_TYPES[(currentIdx + 1) % POT_TYPES.length];
       pots[idx].type = nextType;
-      if (nextType !== 'pension') {
+      if (nextType === 'db-pension') {
+        pots[idx].dbIncome = pots[idx].dbIncome || 0;
+        pots[idx].dbInflationLinked = pots[idx].dbInflationLinked !== undefined ? pots[idx].dbInflationLinked : true;
+      }
+      if (nextType !== 'pension' && nextType !== 'db-pension') {
         pots[idx].contribMode = 'pounds';
         pots[idx].employerContrib = 0;
       }
@@ -1118,6 +1321,33 @@ function renderPots() {
         pots[idx].customRate = nextType === 'premium-bonds' ? 4.4 : 4;
       }
       updateAll();
+    });
+  });
+
+  // DB pension income editing
+  potsGrid.querySelectorAll('.db-income-input').forEach(input => {
+    input.addEventListener('focus', e => {
+      e.target.value = e.target.dataset.raw;
+    });
+    input.addEventListener('blur', e => {
+      const val = parseFloat(e.target.value) || 0;
+      pots[e.target.dataset.index].dbIncome = val;
+      e.target.dataset.raw = val;
+      e.target.value = fmt(val);
+    });
+    input.addEventListener('input', e => {
+      const val = parseFloat(e.target.value) || 0;
+      pots[e.target.dataset.index].dbIncome = val;
+      e.target.dataset.raw = val;
+      updateWithoutRerender();
+    });
+  });
+
+  // DB pension inflation-linked toggle
+  potsGrid.querySelectorAll('.db-inflation-input').forEach(input => {
+    input.addEventListener('change', e => {
+      pots[e.target.dataset.index].dbInflationLinked = e.target.checked;
+      updateWithoutRerender();
     });
   });
 
@@ -1142,6 +1372,7 @@ const formConfig = {
   isa: { title: 'Add a new ISA', placeholder: 'e.g. Vanguard S&S ISA' },
   'cash-isa': { title: 'Add a new Cash ISA', placeholder: 'e.g. Marcus Cash ISA' },
   'premium-bonds': { title: 'Add Premium Bonds', placeholder: 'e.g. NS&I Premium Bonds' },
+  'db-pension': { title: 'Add a defined benefit pension', placeholder: 'e.g. NHS Pension' },
 };
 
 function openAddForm(type) {
@@ -1160,6 +1391,7 @@ addPensionBtn.addEventListener('click', () => openAddForm('pension'));
 addIsaBtn.addEventListener('click', () => openAddForm('isa'));
 addCashIsaBtn.addEventListener('click', () => openAddForm('cash-isa'));
 addPremiumBondsBtn.addEventListener('click', () => openAddForm('premium-bonds'));
+document.getElementById('addDbPensionBtn').addEventListener('click', () => openAddForm('db-pension'));
 
 cancelPotBtn.addEventListener('click', closeAddForm);
 
@@ -1172,6 +1404,11 @@ submitPotBtn.addEventListener('click', () => {
     return;
   }
   const newPot = { name, type, value, employeeContrib: 0, employerContrib: 0, contribMode: 'pounds' };
+  if (type === 'db-pension') {
+    newPot.value = 0;
+    newPot.dbIncome = value || 0;
+    newPot.dbInflationLinked = true;
+  }
   if (type === 'cash-isa') newPot.customRate = 4;
   if (type === 'premium-bonds') newPot.customRate = 4.4;
   pots.push(newPot);
@@ -1192,9 +1429,12 @@ function updateChart() {
   const labels = [];
   for (let y = 0; y <= years; y++) labels.push(currentAge + y);
 
-  const allYearData = pots.map(pot => projectPotByYear(pot, years, rate));
+  const dcPots = pots.filter(p => p.type !== 'db-pension');
+  const dcIndexes = pots.map((p, i) => p.type !== 'db-pension' ? i : -1).filter(i => i >= 0);
+  const allYearData = dcPots.map(pot => projectPotByYear(pot, years, rate));
 
-  const datasets = allYearData.map((data, i) => {
+  const datasets = allYearData.map((data, di) => {
+    const i = dcIndexes[di];
     const color = PALETTE[i % PALETTE.length];
     return {
       label: pots[i].name,
@@ -1269,12 +1509,15 @@ function updateChart() {
 
 // ── Legend ──
 function updateLegend() {
-  let html = pots.map((pot, i) => `
+  let html = pots.map((pot, i) => {
+    if (pot.type === 'db-pension') return '';
+    return `
     <div class="legend-item">
       <div class="legend-swatch" style="background:${PALETTE[i % PALETTE.length]}"></div>
       ${escapeHTML(pot.name)}
     </div>
-  `).join('');
+  `;
+  }).join('');
   if (pots.length > 1 && document.getElementById('showTotalLine').checked) {
     html += `<div class="legend-item">
       <div class="legend-swatch" style="background:${getComputedStyle(document.body).getPropertyValue('--color-text-primary').trim()};opacity:0.6"></div>
@@ -1288,11 +1531,29 @@ function updateLegend() {
 function updateSummary() {
   const { currentAge, retireAge, rate } = getInputs();
   const years = Math.max(retireAge - currentAge, 1);
+  const showLump = document.getElementById('lumpSumToggle').checked;
 
   let cardsHTML = pots.map((pot, i) => {
-    const projected = projectPot(pot, years, rate);
-    const drawdown = projected * DRAWDOWN_RATE;
     const color = PALETTE[i % PALETTE.length];
+    if (pot.type === 'db-pension') {
+      const income = pot.dbIncome || 0;
+      return `
+        <div class="summary-card">
+          <div class="summary-card-header">
+            <div class="summary-card-swatch" style="background:${color}"></div>
+            <div class="summary-card-name">${escapeHTML(pot.name)}</div>
+          </div>
+          <div class="summary-card-projected">${fmt(income)}/yr</div>
+          <div class="summary-card-start">Guaranteed defined benefit income</div>
+          <div class="summary-card-drawdown" style="color:var(--color-text-secondary)">${pot.dbInflationLinked ? 'Inflation-linked' : 'Not inflation-linked'}</div>
+        </div>
+      `;
+    }
+    const projected = projectPot(pot, years, rate);
+    const totalContribs = pot.value + getTotalContributions(pot, years);
+    const growth = projected - totalContribs;
+    const drawdown = projected * DRAWDOWN_RATE;
+    const lumpHTML = (showLump && pot.type === 'pension') ? `<div class="summary-card-lump">25% tax-free lump sum: ${fmt(projected * 0.25)}</div>` : '';
     return `
       <div class="summary-card">
         <div class="summary-card-header">
@@ -1300,7 +1561,9 @@ function updateSummary() {
           <div class="summary-card-name">${escapeHTML(pot.name)}</div>
         </div>
         <div class="summary-card-projected">${fmt(projected)}</div>
+        <div class="summary-card-breakdown">${fmt(totalContribs)} contributed · ${fmt(growth)} growth</div>
         <div class="summary-card-start">Starting: ${fmt(pot.value)}</div>
+        ${lumpHTML}
         <div class="summary-card-drawdown">4% drawdown: ${fmt(drawdown)}/yr</div>
       </div>
     `;
@@ -1328,13 +1591,18 @@ function updateTotals() {
 
   let totalProjected = 0;
   let totalMonthlyContrib = 0;
+  let totalDbIncome = 0;
   pots.forEach(pot => {
+    if (pot.type === 'db-pension') {
+      totalDbIncome += pot.dbIncome || 0;
+      return;
+    }
     totalProjected += projectPot(pot, years, rate);
     totalMonthlyContrib += getMonthlyContrib(pot);
   });
 
   const annualDrawdown = totalProjected * DRAWDOWN_RATE;
-  const annualIncome = annualDrawdown + STATE_PENSION;
+  const annualIncome = annualDrawdown + STATE_PENSION + totalDbIncome;
   const deflator = Math.pow(1 + INFLATION_RATE, years);
   const todaysMoney = annualIncome / deflator;
 
@@ -1349,12 +1617,12 @@ function updateTotals() {
     </div>
     <div class="total-item">
       <div class="total-label">Annual income (4% + state pension)</div>
-      <div class="total-value accent">${fmt(annualIncome)}</div>
-      <div class="total-sub">Drawdown ${fmt(annualDrawdown)} + State pension ${fmt(STATE_PENSION)}</div>
+      <div class="total-value accent">${fmt(annualIncome)} <span class="monthly-sub">(${fmt(annualIncome / 12)}/mo)</span></div>
+      <div class="total-sub">Drawdown ${fmt(annualDrawdown)} + State pension ${fmt(STATE_PENSION)}${totalDbIncome > 0 ? ' + DB pension ' + fmt(totalDbIncome) : ''}</div>
     </div>
     <div class="total-item">
       <div class="total-label">In today's money (2.5% inflation)</div>
-      <div class="total-value">${fmt(todaysMoney)}</div>
+      <div class="total-value">${fmt(todaysMoney)} <span class="monthly-sub">(${fmt(todaysMoney / 12)}/mo)</span></div>
     </div>
   `;
 }
@@ -1375,91 +1643,134 @@ function updateTabs() {
   const { currentAge, retireAge, rate } = getInputs();
   const years = Math.max(retireAge - currentAge, 1);
 
-  const projected = pots.map(pot => projectPot(pot, years, rate));
+  const projected = pots.map(pot => pot.type === 'db-pension' ? 0 : projectPot(pot, years, rate));
   const totalProjected = projected.reduce((a, b) => a + b, 0);
   const deflator = Math.pow(1 + INFLATION_RATE, years);
+  let tabDbIncome = 0;
+  pots.forEach(pot => { if (pot.type === 'db-pension') tabDbIncome += pot.dbIncome || 0; });
 
   // ── Drawdown tab ──
+  const showLump = document.getElementById('lumpSumToggle').checked;
+  let totalLumpSum = 0;
+
   const drawdownItems = pots.map((pot, i) => {
-    const val = projected[i];
+    if (pot.type === 'db-pension') {
+      const income = pot.dbIncome || 0;
+      return `
+        <div class="income-item">
+          <div class="income-item-label">${escapeHTML(pot.name)}</div>
+          <div class="income-item-value">${fmt(income)}/yr <span class="income-item-monthly">(${fmt(income / 12)}/mo)</span></div>
+          <div class="income-item-note">Guaranteed DB income${pot.dbInflationLinked ? ' (inflation-linked)' : ''}</div>
+        </div>
+      `;
+    }
+    let val = projected[i];
+    let lumpNote = '';
+    if (showLump && pot.type === 'pension') {
+      const lump = val * 0.25;
+      totalLumpSum += lump;
+      val = val * 0.75;
+      lumpNote = `<div class="income-item-note">After 25% lump sum (${fmt(lump)})</div>`;
+    }
     const income = val * DRAWDOWN_RATE;
-    const note = isTaxFree(pot.type) ? 'Tax-free' : '';
+    const note = isTaxFree(pot.type) ? '<div class="income-item-note">Tax-free</div>' : '';
     return `
       <div class="income-item">
         <div class="income-item-label">${escapeHTML(pot.name)}</div>
-        <div class="income-item-value">${fmt(income)}/yr</div>
-        ${note ? `<div class="income-item-note">${note}</div>` : ''}
+        <div class="income-item-value">${fmt(income)}/yr <span class="income-item-monthly">(${fmt(income / 12)}/mo)</span></div>
+        ${lumpNote}${note}
       </div>
     `;
   }).join('');
 
-  const drawdownTotal = totalProjected * DRAWDOWN_RATE;
-  const drawdownPlusState = drawdownTotal + STATE_PENSION;
+  const adjustedTotal = showLump ? totalProjected - totalLumpSum : totalProjected;
+  const drawdownTotal = adjustedTotal * DRAWDOWN_RATE;
+  const drawdownPlusState = drawdownTotal + STATE_PENSION + tabDbIncome;
+  const lumpSumNote = showLump && totalLumpSum > 0 ? `<div class="total-sub">Plus ${fmt(totalLumpSum)} tax-free lump sum</div>` : '';
 
   document.getElementById('tab-drawdown').innerHTML = `
     <div class="income-breakdown">${drawdownItems}
       <div class="income-item">
         <div class="income-item-label">State pension</div>
-        <div class="income-item-value">${fmt(STATE_PENSION)}/yr</div>
+        <div class="income-item-value">${fmt(STATE_PENSION)}/yr <span class="income-item-monthly">(${fmt(STATE_PENSION / 12)}/mo)</span></div>
       </div>
     </div>
     <div class="totals-row">
       <div class="total-item">
         <div class="total-label">Total annual income (drawdown)</div>
-        <div class="total-value accent">${fmt(drawdownPlusState)}</div>
+        <div class="total-value accent">${fmt(drawdownPlusState)} <span class="monthly-sub">(${fmt(drawdownPlusState / 12)}/mo)</span></div>
+        ${lumpSumNote}
       </div>
       <div class="total-item">
         <div class="total-label">In today's money</div>
-        <div class="total-value">${fmt(drawdownPlusState / deflator)}</div>
+        <div class="total-value">${fmt(drawdownPlusState / deflator)} <span class="monthly-sub">(${fmt(drawdownPlusState / deflator / 12)}/mo)</span></div>
       </div>
     </div>
     <p class="tab-note">Drawdown withdraws 4% of your pot each year, leaving the remainder invested. Income varies with market performance but preserves capital.</p>
   `;
 
   // ── Annuity tab ──
-  let annuityTotal = STATE_PENSION;
+  let annuityTotal = STATE_PENSION + tabDbIncome;
+  let annuityLumpTotal = 0;
   const annuityItems = pots.map((pot, i) => {
-    const val = projected[i];
+    if (pot.type === 'db-pension') {
+      const income = pot.dbIncome || 0;
+      return `
+        <div class="income-item">
+          <div class="income-item-label">${escapeHTML(pot.name)}</div>
+          <div class="income-item-value">${fmt(income)}/yr <span class="income-item-monthly">(${fmt(income / 12)}/mo)</span></div>
+          <div class="income-item-note">Guaranteed DB income</div>
+        </div>
+      `;
+    }
+    let val = projected[i];
+    let lumpNote = '';
+    if (showLump && pot.type === 'pension') {
+      const lump = val * 0.25;
+      annuityLumpTotal += lump;
+      val = val * 0.75;
+      lumpNote = `<div class="income-item-note">After 25% lump sum (${fmt(lump)})</div>`;
+    }
     const annuityRate = getAnnuityRate(pot.type);
     const income = val * annuityRate;
     annuityTotal += income;
     return `
       <div class="income-item">
         <div class="income-item-label">${escapeHTML(pot.name)} (${getAnnuityLabel(pot.type)})</div>
-        <div class="income-item-value">${fmt(income)}/yr</div>
+        <div class="income-item-value">${fmt(income)}/yr <span class="income-item-monthly">(${fmt(income / 12)}/mo)</span></div>
+        ${lumpNote}
       </div>
     `;
   }).join('');
+
+  const annuityLumpNote = showLump && annuityLumpTotal > 0 ? `<div class="total-sub">Plus ${fmt(annuityLumpTotal)} tax-free lump sum</div>` : '';
 
   document.getElementById('tab-annuity').innerHTML = `
     <div class="income-breakdown">${annuityItems}
       <div class="income-item">
         <div class="income-item-label">State pension</div>
-        <div class="income-item-value">${fmt(STATE_PENSION)}/yr</div>
+        <div class="income-item-value">${fmt(STATE_PENSION)}/yr <span class="income-item-monthly">(${fmt(STATE_PENSION / 12)}/mo)</span></div>
       </div>
     </div>
     <div class="totals-row">
       <div class="total-item">
         <div class="total-label">Total annual income (annuity)</div>
-        <div class="total-value accent">${fmt(annuityTotal)}</div>
+        <div class="total-value accent">${fmt(annuityTotal)} <span class="monthly-sub">(${fmt(annuityTotal / 12)}/mo)</span></div>
+        ${annuityLumpNote}
       </div>
       <div class="total-item">
         <div class="total-label">In today's money</div>
-        <div class="total-value">${fmt(annuityTotal / deflator)}</div>
+        <div class="total-value">${fmt(annuityTotal / deflator)} <span class="monthly-sub">(${fmt(annuityTotal / deflator / 12)}/mo)</span></div>
       </div>
     </div>
     <p class="tab-note">An annuity provides guaranteed level income for life by exchanging your pot for an insurance contract. Note: level income erodes in real terms with inflation over time.</p>
   `;
 
   // ── Compare tab ──
-  let annuityCompTotal = STATE_PENSION;
-  pots.forEach((pot, i) => {
-    annuityCompTotal += projected[i] * getAnnuityRate(pot.type);
-  });
-
-  const drawdownBetter = drawdownPlusState < annuityCompTotal;
-  const diff = Math.abs(drawdownPlusState - annuityCompTotal);
-  const note = drawdownPlusState >= annuityCompTotal
+  // annuityTotal already calculated above with lump sum adjustments
+  const drawdownBetter = drawdownPlusState < annuityTotal;
+  const diff = Math.abs(drawdownPlusState - annuityTotal);
+  const compNote = drawdownPlusState >= annuityTotal
     ? `Drawdown gives you ${fmt(diff)} more per year, with flexibility to adjust withdrawals and pass on remaining capital.`
     : `Annuity gives you ${fmt(diff)} more per year in guaranteed income, but you lose access to your capital.`;
 
@@ -1467,21 +1778,95 @@ function updateTabs() {
     <div class="compare-grid">
       <div class="compare-card ${!drawdownBetter ? 'featured' : ''}">
         <h4>Drawdown (4%)</h4>
-        <div class="compare-total">${fmt(drawdownPlusState)}/yr</div>
+        <div class="compare-total">${fmt(drawdownPlusState)}/yr <span class="monthly-sub">(${fmt(drawdownPlusState / 12)}/mo)</span></div>
         <div class="compare-detail">Pot drawdown: ${fmt(drawdownTotal)}</div>
         <div class="compare-detail">State pension: ${fmt(STATE_PENSION)}</div>
-        <div class="compare-detail">In today's money: ${fmt(drawdownPlusState / deflator)}</div>
+        <div class="compare-detail">In today's money: ${fmt(drawdownPlusState / deflator)}/yr</div>
       </div>
       <div class="compare-card ${drawdownBetter ? 'featured' : ''}">
         <h4>Annuity</h4>
-        <div class="compare-total">${fmt(annuityCompTotal)}/yr</div>
+        <div class="compare-total">${fmt(annuityTotal)}/yr <span class="monthly-sub">(${fmt(annuityTotal / 12)}/mo)</span></div>
         <div class="compare-detail">Pension @ 5%, ISA @ 4%, Cash/Bonds @ 3%</div>
         <div class="compare-detail">State pension: ${fmt(STATE_PENSION)}</div>
-        <div class="compare-detail">In today's money: ${fmt(annuityCompTotal / deflator)}</div>
+        <div class="compare-detail">In today's money: ${fmt(annuityTotal / deflator)}/yr</div>
       </div>
     </div>
-    <p class="tab-note">${note}</p>
+    <p class="tab-note">${compNote}</p>
   `;
+
+  // ── Target tab ──
+  const targetInput = document.getElementById('targetIncomeInput');
+  const savedTarget = window._savedTargetIncome ? parseFloat(window._savedTargetIncome) : null;
+  const targetIncome = targetInput ? (parseFloat(targetInput.dataset.raw) || 30000) : (savedTarget || 30000);
+  if (savedTarget) { window._savedTargetIncome = null; }
+  const pct = Math.min((drawdownPlusState / targetIncome) * 100, 100);
+  const shortfall = Math.max(targetIncome - drawdownPlusState, 0);
+  const barColor = pct >= 100 ? 'var(--color-accent-green)' : pct >= 70 ? '#BA7517' : '#D85A30';
+
+  // Calculate extra monthly needed to hit target
+  let extraMonthly = 0;
+  if (shortfall > 0) {
+    // Need extra pot value = shortfall / DRAWDOWN_RATE
+    const extraPotNeeded = shortfall / DRAWDOWN_RATE;
+    const rate = getInputs().rate;
+    const monthlyRate = rate / 12;
+    const months = years * 12;
+    // FV of annuity formula: FV = PMT * ((1+r)^n - 1) / r
+    if (monthlyRate > 0) {
+      extraMonthly = extraPotNeeded / ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
+    } else {
+      extraMonthly = extraPotNeeded / months;
+    }
+  }
+
+  document.getElementById('tab-target').innerHTML = `
+    <div class="target-input-group">
+      <label for="targetIncomeInput">Target annual income</label>
+      <input type="text" id="targetIncomeInput" value="${fmt(targetIncome)}" data-raw="${targetIncome}" class="salary-display" style="width:160px">
+    </div>
+    <div class="target-bar">
+      <div class="target-bar-label">Projected income vs target</div>
+      <div class="target-bar-track">
+        <div class="target-bar-fill" style="width:${pct}%;background:${barColor}"></div>
+      </div>
+      <div class="target-bar-pct" style="color:${barColor}">${fmt(drawdownPlusState)} of ${fmt(targetIncome)} (${Math.round(pct)}%)</div>
+    </div>
+    ${shortfall > 0 ? `
+    <div class="target-shortfall">
+      <div class="target-shortfall-label">Annual shortfall</div>
+      <div class="target-shortfall-value" style="color:#D85A30">${fmt(shortfall)}/yr <span class="monthly-sub">(${fmt(shortfall / 12)}/mo)</span></div>
+    </div>
+    <div class="target-shortfall">
+      <div class="target-shortfall-label">Extra monthly contribution needed (at ${getInputs().rate * 100}% growth)</div>
+      <div class="target-shortfall-value" style="color:var(--color-accent-green)">${fmt(extraMonthly)}/mo</div>
+      <div class="income-item-note">Invested over ${years} years to close the gap</div>
+    </div>
+    ` : `
+    <div class="target-shortfall">
+      <div class="target-shortfall-label">Status</div>
+      <div class="target-shortfall-value" style="color:var(--color-accent-green)">On track! Your projected income meets your target.</div>
+    </div>
+    `}
+    <p class="tab-note">Target income uses your 4% drawdown projection plus state pension. The extra contribution needed assumes investment at your selected annual growth rate.</p>
+  `;
+
+  // Bind target input events
+  const newTargetInput = document.getElementById('targetIncomeInput');
+  if (newTargetInput && !newTargetInput.dataset.bound) {
+    newTargetInput.dataset.bound = '1';
+    newTargetInput.addEventListener('focus', e => { e.target.value = e.target.dataset.raw; });
+    newTargetInput.addEventListener('blur', e => {
+      const val = parseFloat(e.target.value) || 0;
+      e.target.dataset.raw = val;
+      e.target.value = fmt(val);
+      updateWithoutRerender();
+    });
+    newTargetInput.addEventListener('input', e => {
+      const val = parseFloat(e.target.value) || 0;
+      e.target.dataset.raw = val;
+      updateWithoutRerender();
+    });
+  }
 }
 
 // Tab switching
@@ -1511,6 +1896,30 @@ document.getElementById('showTotalLine').addEventListener('change', () => {
   updateChart();
   updateLegend();
   saveState();
+});
+
+document.getElementById('lumpSumToggle').addEventListener('change', () => {
+  updateSummary();
+  updateTabs();
+  saveState();
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  if (!confirm('Reset all settings to defaults? This will clear your saved data.')) return;
+  localStorage.removeItem('retirementPlanner');
+  pots = [
+    { name: 'Pension 1', type: 'pension', value: 30000, employeeContrib: 3, employerContrib: 3, contribMode: 'percent' },
+  ];
+  currentAgeInput.value = 37;
+  retireAgeInput.value = 65;
+  retireAgeValue.textContent = '65';
+  annualRateInput.value = 7;
+  annualRateValue.textContent = '7%';
+  salaryInput.dataset.raw = '35000';
+  salaryInput.value = fmt(35000);
+  document.getElementById('showTotalLine').checked = false;
+  document.getElementById('lumpSumToggle').checked = false;
+  updateAll();
 });
 
 salaryInput.addEventListener('focus', e => {
@@ -1560,6 +1969,8 @@ if (saved) {
   salaryInput.dataset.raw = saved.salary;
   salaryInput.value = fmt(parseFloat(saved.salary));
   if (saved.showTotal) document.getElementById('showTotalLine').checked = true;
+  if (saved.showLumpSum) document.getElementById('lumpSumToggle').checked = true;
+  if (saved.targetIncome) window._savedTargetIncome = saved.targetIncome;
 }
 updateAll();
 </script>
