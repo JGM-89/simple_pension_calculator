@@ -91,12 +91,10 @@ h1 {
 
 .salary-display:hover {
   background: var(--color-input-bg);
-  padding: 2px 4px;
 }
 
 .salary-display:focus {
   background: var(--color-input-bg);
-  padding: 2px 4px;
   outline: 2px solid var(--color-accent-green);
 }
 
@@ -1818,6 +1816,7 @@ function updateTabs() {
 
   // ── Target tab ──
   const targetInput = document.getElementById('targetIncomeInput');
+  const targetFocused = targetInput && document.activeElement === targetInput;
   const savedTarget = window._savedTargetIncome ? parseFloat(window._savedTargetIncome) : null;
   const targetIncome = targetInput ? (parseFloat(targetInput.dataset.raw) || 30000) : (savedTarget || 30000);
   if (savedTarget) { window._savedTargetIncome = null; }
@@ -1839,6 +1838,21 @@ function updateTabs() {
     } else {
       extraMonthly = extraPotNeeded / months;
     }
+  }
+
+  if (targetFocused) {
+    // Update dynamic parts in place without rebuilding (preserves focus)
+    const fill = document.querySelector('#tab-target .target-bar-fill');
+    const pctLabel = document.querySelector('#tab-target .target-bar-pct');
+    const shortfallEls = document.querySelectorAll('#tab-target .target-shortfall');
+    if (fill) { fill.style.width = pct + '%'; fill.style.background = barColor; }
+    if (pctLabel) { pctLabel.style.color = barColor; pctLabel.innerHTML = `${fmt(drawdownPlusState)} of ${fmt(targetIncome)} (${Math.round(pct)}%)`; }
+    if (shortfall > 0 && shortfallEls.length >= 2) {
+      shortfallEls[0].querySelector('.target-shortfall-value').innerHTML = `${fmt(shortfall)}/yr <span class="monthly-sub">(${fmt(shortfall / 12)}/mo)</span>`;
+      shortfallEls[1].querySelector('.target-shortfall-label').textContent = `Extra monthly contribution needed (at ${getInputs().rate * 100}% growth)`;
+      shortfallEls[1].querySelector('.target-shortfall-value').innerHTML = `${fmt(extraMonthly)}/mo`;
+    }
+    return;
   }
 
   document.getElementById('tab-target').innerHTML = `
