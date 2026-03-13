@@ -1556,7 +1556,9 @@ function updateSummary() {
     const takeLump = showLump && pot.type === 'pension';
     const drawdownBase = takeLump ? projected * 0.75 : projected;
     const drawdown = drawdownBase * DRAWDOWN_RATE;
-    const lumpHTML = takeLump ? `<div class="summary-card-lump">25% tax-free lump sum: ${fmt(projected * 0.25)}</div>` : '';
+    const lumpAmount = projected * 0.25;
+    const lumpVis = takeLump ? '' : 'visibility:hidden';
+    const lumpHTML = pot.type === 'pension' ? `<div class="summary-card-lump" style="${lumpVis}">25% tax-free lump sum: ${fmt(lumpAmount)}</div>` : '';
     return `
       <div class="summary-card">
         <div class="summary-card-header">
@@ -1616,7 +1618,9 @@ function updateTotals() {
   const annualIncome = annualDrawdown + STATE_PENSION + totalDbIncome;
   const deflator = Math.pow(1 + INFLATION_RATE, years);
   const todaysMoney = annualIncome / deflator;
-  const lumpNote = showLump && lumpTotal > 0 ? `<div class="total-sub">Plus ${fmt(lumpTotal)} tax-free lump sum</div>` : '';
+  const hasPensions = pots.some(p => p.type === 'pension');
+  const lumpVis = showLump && lumpTotal > 0 ? '' : 'visibility:hidden';
+  const lumpNote = hasPensions ? `<div class="total-sub" style="${lumpVis}">Plus ${fmt(lumpTotal)} tax-free lump sum</div>` : '';
 
   totalsRow.innerHTML = `
     <div class="total-item">
@@ -1679,11 +1683,14 @@ function updateTabs() {
     }
     let val = projected[i];
     let lumpNote = '';
-    if (showLump && pot.type === 'pension') {
+    if (pot.type === 'pension') {
       const lump = val * 0.25;
-      totalLumpSum += lump;
-      val = val * 0.75;
-      lumpNote = `<div class="income-item-note">After 25% lump sum (${fmt(lump)})</div>`;
+      if (showLump) {
+        totalLumpSum += lump;
+        val = val * 0.75;
+      }
+      const lumpVis = showLump ? '' : ' style="visibility:hidden"';
+      lumpNote = `<div class="income-item-note"${lumpVis}>After 25% lump sum (${fmt(lump)})</div>`;
     }
     const income = val * DRAWDOWN_RATE;
     const note = isTaxFree(pot.type) ? '<div class="income-item-note">Tax-free</div>' : '';
@@ -1699,7 +1706,9 @@ function updateTabs() {
   const adjustedTotal = showLump ? totalProjected - totalLumpSum : totalProjected;
   const drawdownTotal = adjustedTotal * DRAWDOWN_RATE;
   const drawdownPlusState = drawdownTotal + STATE_PENSION + tabDbIncome;
-  const lumpSumNote = showLump && totalLumpSum > 0 ? `<div class="total-sub">Plus ${fmt(totalLumpSum)} tax-free lump sum</div>` : '';
+  const tabHasPensions = pots.some(p => p.type === 'pension');
+  const tabLumpVis = showLump && totalLumpSum > 0 ? '' : 'visibility:hidden';
+  const lumpSumNote = tabHasPensions ? `<div class="total-sub" style="${tabLumpVis}">Plus ${fmt(totalLumpSum)} tax-free lump sum</div>` : '';
 
   document.getElementById('tab-drawdown').innerHTML = `
     <div class="income-breakdown">${drawdownItems}
