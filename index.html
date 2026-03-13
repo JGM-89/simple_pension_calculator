@@ -455,6 +455,21 @@ h1 {
   flex-shrink: 0;
 }
 
+.total-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  margin-bottom: 20px;
+  padding: 0 4px;
+}
+
+.total-toggle input {
+  accent-color: var(--color-accent-green);
+}
+
 /* ── Pot summary cards ── */
 .summary-grid {
   display: grid;
@@ -774,6 +789,7 @@ h1 {
 
 <!-- 5. Legend -->
 <div class="chart-legend" id="chartLegend"></div>
+<label class="total-toggle"><input type="checkbox" id="showTotalLine"> Show total on chart</label>
 
 <!-- 6. Pot summary cards -->
 <div class="summary-grid" id="summaryGrid"></div>
@@ -823,6 +839,7 @@ function saveState() {
     retireAge: retireAgeInput.value,
     annualRate: annualRateInput.value,
     salary: salaryInput.dataset.raw,
+    showTotal: document.getElementById('showTotalLine').checked,
   };
   try { localStorage.setItem('retirementPlanner', JSON.stringify(state)); } catch(e) {}
 }
@@ -1183,8 +1200,9 @@ function updateChart() {
     };
   });
 
-  // Add total line if more than one pot
-  if (pots.length > 1) {
+  // Add total line if more than one pot and toggle is on
+  const showTotal = document.getElementById('showTotalLine').checked;
+  if (pots.length > 1 && showTotal) {
     const totalData = allYearData[0].map((_, yi) => allYearData.reduce((sum, d) => sum + d[yi], 0));
     datasets.push({
       label: 'Total',
@@ -1249,7 +1267,7 @@ function updateLegend() {
       ${escapeHTML(pot.name)}
     </div>
   `).join('');
-  if (pots.length > 1) {
+  if (pots.length > 1 && document.getElementById('showTotalLine').checked) {
     html += `<div class="legend-item">
       <div class="legend-swatch" style="background:${getComputedStyle(document.body).getPropertyValue('--color-text-primary').trim()};opacity:0.6"></div>
       Total
@@ -1481,6 +1499,12 @@ annualRateInput.addEventListener('input', () => {
 
 currentAgeInput.addEventListener('input', () => updateAll());
 
+document.getElementById('showTotalLine').addEventListener('change', () => {
+  updateChart();
+  updateLegend();
+  saveState();
+});
+
 salaryInput.addEventListener('focus', e => {
   e.target.value = e.target.dataset.raw;
 });
@@ -1527,6 +1551,7 @@ if (saved) {
   annualRateValue.textContent = saved.annualRate + '%';
   salaryInput.dataset.raw = saved.salary;
   salaryInput.value = fmt(parseFloat(saved.salary));
+  if (saved.showTotal) document.getElementById('showTotalLine').checked = true;
 }
 updateAll();
 </script>
