@@ -925,7 +925,7 @@ h1 {
 <!-- 3. Add pot buttons -->
 <div class="add-pot-buttons" id="addPotButtons">
   <button class="add-pot-btn" id="addPensionBtn" type="button">+ Add pension</button>
-  <button class="add-pot-btn" id="addIsaBtn" type="button">+ Add ISA</button>
+  <button class="add-pot-btn" id="addIsaBtn" type="button">+ Add S&amp;S ISA</button>
   <button class="add-pot-btn" id="addCashIsaBtn" type="button">+ Add Cash ISA</button>
   <button class="add-pot-btn" id="addPremiumBondsBtn" type="button">+ Add Premium Bonds</button>
   <button class="add-pot-btn" id="addDbPensionBtn" type="button">+ Add DB pension</button>
@@ -1114,7 +1114,7 @@ function getTotalContributions(pot, years) {
 function potTypeLabel(type) {
   switch(type) {
     case 'pension': return 'Pension';
-    case 'isa': return 'ISA';
+    case 'isa': return 'S&S ISA';
     case 'cash-isa': return 'Cash ISA';
     case 'premium-bonds': return 'Premium Bonds';
     case 'db-pension': return 'DB Pension';
@@ -1367,7 +1367,7 @@ const addPremiumBondsBtn = document.getElementById('addPremiumBondsBtn');
 
 const formConfig = {
   pension: { title: 'Add a new pension', placeholder: 'e.g. Workplace pension' },
-  isa: { title: 'Add a new ISA', placeholder: 'e.g. Vanguard S&S ISA' },
+  isa: { title: 'Add a new S&S ISA', placeholder: 'e.g. Vanguard S&S ISA' },
   'cash-isa': { title: 'Add a new Cash ISA', placeholder: 'e.g. Marcus Cash ISA' },
   'premium-bonds': { title: 'Add Premium Bonds', placeholder: 'e.g. NS&I Premium Bonds' },
   'db-pension': { title: 'Add a defined benefit pension', placeholder: 'e.g. NHS Pension' },
