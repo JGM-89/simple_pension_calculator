@@ -10,6 +10,7 @@
 - **PDF branding** — domain URL shown on every page footer and title page
 - **SEO** — meta tags, JSON-LD structured data, sitemap, robots.txt with AI crawler permissions, Google Search Console verified
 - **Contact footer** — email address for bug reports and questions
+- **SIPP as separate pot type** — SIPPs now have their own "+ Add SIPP" button with a personal contribution field only (no employer contributions or salary percentage toggle), while sharing the same tax treatment, 25% lump sum, and annuity rates as workplace pensions
 
 ### Improvements
 - **Expanded add-pot form** — contributions, interest rates, and DB calculator now available when creating a pot (not just after editing). Pensions get £/% toggle with employee/employer fields, DB pensions get the full service-years calculator, cash ISAs/premium bonds get rate fields

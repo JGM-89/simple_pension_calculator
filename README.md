@@ -6,12 +6,12 @@ A free, private UK retirement planning calculator that runs entirely in your bro
 
 ## Features
 
-- **8 pot types** — Pensions, S&S ISAs, GIAs, Cash ISAs, S&S LISAs, Cash LISAs, Premium Bonds, and Defined Benefit pensions. All fields (contributions, rates, DB calculator) available from the add form — no need to save first
+- **9 pot types** — Pensions, SIPPs, S&S ISAs, GIAs, Cash ISAs, S&S LISAs, Cash LISAs, Premium Bonds, and Defined Benefit pensions. All fields (contributions, rates, DB calculator) available from the add form — no need to save first
 - **Couple mode** — Plan for two people with separate ages, salaries, and pot ownership in dedicated sections
 - **Tax modelling** — Estimated income tax (2024/25 bands with personal allowance taper) and CGT on GIA withdrawals, with full band-by-band "show the working" breakdowns
 - **LISA government bonus** — 25% bonus on contributions up to £4,000/yr, automatically stops at age 50
 - **Defined benefit pensions** — Model guaranteed income from DB schemes (e.g. NHS, Teachers', Civil Service) with optional inflation linking and a service-years helper calculator
-- **Flexible contributions** — Switch between £/month and % of salary for pensions; employer and employee contributions shown separately
+- **Flexible contributions** — Switch between £/month and % of salary for workplace pensions; employer and employee contributions shown separately. SIPPs have a simple personal contribution field
 - **Growth projections** — Interactive chart showing projected pot values to retirement (default 5% nominal return)
 - **Income comparison** — Drawdown (4% rule), annuity, and side-by-side comparison tabs with "show the working" breakdowns
 - **Inflation toggle** — View income figures in today's money to see real purchasing power
@@ -33,7 +33,7 @@ All calculations run client-side in your browser. No data is sent to any server.
 - Inflation modelled at 2.5% per year
 - State pension shown at current full rate of £11,500/yr, projected forward at 2.5% inflation (triple lock) — no real-terms growth assumed
 - Drawdown uses the 4% withdrawal rule
-- Annuity rates are illustrative (5% pension, 4% ISA/LISA, 3% cash/bonds) — level (non-escalating), so income erodes with inflation
+- Annuity rates are illustrative (5% pension/SIPP, 4% ISA/LISA, 3% cash/bonds) — level (non-escalating), so income erodes with inflation
 - Tax estimates use 2024/25 income tax bands and CGT rates; personal allowance taper above £100k is modelled
 - GIA withdrawals taxed using £3,000 CGT allowance and 20% higher rate as a conservative estimate
 - In couple mode, each person's income is taxed independently
