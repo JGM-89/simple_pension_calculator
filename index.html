@@ -432,12 +432,19 @@ h1 {
 }
 
 /* ── Legend ── */
+.chart-legend-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding: 0 4px;
+}
+
 .chart-legend {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
-  margin-bottom: 24px;
-  padding: 0 4px;
 }
 
 .legend-item {
@@ -462,8 +469,7 @@ h1 {
   font-size: 0.8rem;
   color: var(--color-text-secondary);
   cursor: pointer;
-  margin-bottom: 20px;
-  padding: 0 4px;
+  white-space: nowrap;
 }
 
 .total-toggle input {
@@ -788,8 +794,10 @@ h1 {
 </div>
 
 <!-- 5. Legend -->
-<div class="chart-legend" id="chartLegend"></div>
-<label class="total-toggle"><input type="checkbox" id="showTotalLine"> Show total on chart</label>
+<div class="chart-legend-row">
+  <div class="chart-legend" id="chartLegend"></div>
+  <label class="total-toggle"><input type="checkbox" id="showTotalLine"> Show total</label>
+</div>
 
 <!-- 6. Pot summary cards -->
 <div class="summary-grid" id="summaryGrid"></div>
