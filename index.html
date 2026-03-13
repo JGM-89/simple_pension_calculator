@@ -1010,6 +1010,125 @@ h1 {
   margin-top: 8px;
 }
 
+/* ── Show the maths ── */
+.show-maths {
+  margin-top: 12px;
+  border: 0.5px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.show-maths summary {
+  padding: 10px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-accent-green);
+  cursor: pointer;
+  background: var(--color-surface);
+  list-style: none;
+}
+
+.show-maths summary::before {
+  content: '\25B6  ';
+  font-size: 0.6rem;
+  transition: transform 0.15s;
+  display: inline-block;
+}
+
+.show-maths[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.show-maths summary:hover {
+  background: var(--color-input-bg);
+}
+
+.show-maths-content {
+  padding: 12px 14px;
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+  line-height: 1.8;
+  border-top: 0.5px solid var(--color-border);
+}
+
+.show-maths-content .maths-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+}
+
+.show-maths-content .maths-row.total {
+  font-weight: 700;
+  color: var(--color-text-primary);
+  border-top: 1px solid var(--color-border);
+  margin-top: 4px;
+  padding-top: 6px;
+}
+
+.show-maths-content .maths-label {
+  color: var(--color-text-secondary);
+}
+
+.show-maths-content .maths-value {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.show-maths-content .maths-heading {
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-top: 8px;
+  margin-bottom: 2px;
+}
+
+.show-maths-content .maths-note {
+  font-size: 0.72rem;
+  font-style: italic;
+  color: var(--color-text-secondary);
+  margin-top: 6px;
+}
+
+.compare-warning {
+  background: rgba(186, 117, 23, 0.1);
+  border: 1px solid #BA7517;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 12px 0;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--color-text-primary);
+}
+
+.compare-warning strong {
+  color: #BA7517;
+}
+
+.compare-pros {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0 0;
+  font-size: 0.8rem;
+  line-height: 1.7;
+}
+
+.compare-pros li {
+  padding-left: 18px;
+  position: relative;
+}
+
+.compare-pros li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--color-accent-green);
+  font-weight: 700;
+}
+
+.compare-pros li:nth-last-child(1)::before {
+  content: '⚠';
+  color: #BA7517;
+}
+
 /* ── Lump sum toggle ── */
 .lump-sum-toggle {
   display: flex;
@@ -1181,7 +1300,7 @@ h1 {
 <div class="controls">
   <div class="control-group">
     <label for="currentAge">Current age</label>
-    <input type="number" id="currentAge" value="" min="18" max="99" class="salary-display" style="width:60px" placeholder="30">
+    <input type="number" id="currentAge" value="" min="18" max="99" class="salary-display" style="width:60px" placeholder="18">
   </div>
   <div class="control-group">
     <label for="retireAge">Retire at age <span class="control-value" id="retireAgeValue">67</span></label>
@@ -1204,7 +1323,7 @@ h1 {
 <div class="controls" id="partnerControls" style="display:none">
   <div class="control-group">
     <label for="partnerAge">Partner age</label>
-    <input type="number" id="partnerAge" value="" min="18" max="99" class="salary-display" style="width:60px" placeholder="30">
+    <input type="number" id="partnerAge" value="" min="18" max="99" class="salary-display" style="width:60px" placeholder="18">
   </div>
   <div class="control-group">
     <label for="partnerRetireAge">Partner retires at <span class="control-value" id="partnerRetireAgeValue">67</span></label>
@@ -1311,6 +1430,9 @@ h1 {
     <li>The 25% tax-free pension lump sum reduces your remaining pot and therefore your drawdown income. The lump sum is taken at retirement — in practice, you may take it in stages.</li>
     <li>Tax estimates use 2024/25 income tax bands and CGT rates. They assume no other income in retirement. Personal allowance taper above £100k is modelled. Actual tax depends on your full circumstances — seek professional advice.</li>
     <li>GIA (General Investment Account) withdrawals are subject to Capital Gains Tax on the gains portion. The CGT annual allowance (£3,000) and higher rate (20%) are used as a conservative estimate.</li>
+    <li>Annuity income shown is level (non-escalating) — it is fixed at purchase and loses buying power to inflation every year. Drawdown income can grow because your pot stays invested. Year-1 comparisons alone are misleading.</li>
+    <li>In couple mode, each person's income is taxed independently using their own personal allowance and tax bands.</li>
+    <li>PLSA Retirement Living Standards benchmarks (Minimum, Moderate, Comfortable) are used as reference points and updated periodically by the Pensions and Lifetime Savings Association.</li>
     <li>This tool is for illustration only and does not constitute financial advice. Consider consulting a qualified financial adviser.</li>
   </ul>
   <p class="privacy-note">Your data stays private. All calculations run in your browser. Nothing is sent to any server. Your settings are saved in your browser's local storage only.</p>
@@ -1513,7 +1635,7 @@ function getPotRate(pot) {
 
 function getInputs() {
   return {
-    currentAge: parseInt(currentAgeInput.value) || 37,
+    currentAge: parseInt(currentAgeInput.value) || 18,
     retireAge: parseInt(retireAgeInput.value),
     rate: parseInt(annualRateInput.value) / 100,
   };
@@ -1702,11 +1824,11 @@ function renderPots() {
         </div>
         <div class="pot-contrib-row">
           <div class="pot-contrib-field">
-            <label>Your (${unit}${isPct ? '' : '/mo'})</label>
+            <label>${isPct ? 'Your (%)' : 'Your monthly (£)'}</label>
             <input type="number" min="0" step="${isPct ? '0.5' : '1'}" value="${pot.employeeContrib}" data-index="${i}" class="employee-contrib-input">
           </div>
           <div class="pot-contrib-field">
-            <label>Employer (${unit}${isPct ? '' : '/mo'})</label>
+            <label>${isPct ? 'Employer (%)' : 'Employer monthly (£)'}</label>
             <input type="number" min="0" step="${isPct ? '0.5' : '1'}" value="${pot.employerContrib}" data-index="${i}" class="employer-contrib-input">
           </div>
         </div>
@@ -2374,6 +2496,32 @@ function updateTabs() {
       </div>
     </div>
     <p class="tab-note">Drawdown withdraws 4% of your pot each year, leaving the remainder invested. Income varies with market performance but preserves capital. Tax estimate uses 2024/25 bands and assumes no other income.</p>
+    <details class="show-maths">
+      <summary>Show the working</summary>
+      <div class="show-maths-content">
+        <div class="maths-heading">How drawdown income is calculated</div>
+        ${pots.filter(p => p.type !== 'db-pension').map((pot, i) => {
+          const idx = pots.indexOf(pot);
+          let val = projected[idx];
+          const takeLump = showLump && pot.type === 'pension';
+          const lumpAmt = takeLump ? val * 0.25 : 0;
+          const base = takeLump ? val * 0.75 : val;
+          const inc = base * DRAWDOWN_RATE;
+          return `<div class="maths-row"><span class="maths-label">${escapeHTML(pot.name)}: ${fmtR(val, tabDeflator)} pot${takeLump ? ' &minus; ' + fmtR(lumpAmt, tabDeflator) + ' lump sum = ' + fmtR(base, tabDeflator) : ''} &times; 4%</span><span class="maths-value">${fmtR(inc, tabDeflator)}/yr</span></div>`;
+        }).join('')}
+        ${pots.filter(p => p.type === 'db-pension').map(pot => `<div class="maths-row"><span class="maths-label">${escapeHTML(pot.name)} (DB guaranteed)</span><span class="maths-value">${fmtR(pot.dbIncome || 0, tabDeflator)}/yr</span></div>`).join('')}
+        <div class="maths-row"><span class="maths-label">State pension${tabIsCouple ? ' (&times;2)' : ''}</span><span class="maths-value">${fmtR(tabStatePensionTotal, tabDeflator)}/yr</span></div>
+        <div class="maths-row total"><span class="maths-label">Total gross income</span><span class="maths-value">${fmtR(drawdownPlusState, tabDeflator)}/yr</span></div>
+        <div class="maths-heading">Tax calculation (2024/25 bands)</div>
+        <div class="maths-row"><span class="maths-label">Taxable income (pension + state pension + DB)</span><span class="maths-value">${fmt(drawdownTax.taxableIncome)}</span></div>
+        <div class="maths-row"><span class="maths-label">Personal allowance (${drawdownTax.taxableIncome > 100000 ? 'tapered' : '£12,570'})</span><span class="maths-value">tax-free</span></div>
+        <div class="maths-row"><span class="maths-label">ISA/LISA/Premium Bond income</span><span class="maths-value">tax-free</span></div>
+        ${drawdownTax.cgt > 0 ? `<div class="maths-row"><span class="maths-label">GIA capital gains tax</span><span class="maths-value">${fmt(drawdownTax.cgt)}</span></div>` : ''}
+        <div class="maths-row"><span class="maths-label">Income tax</span><span class="maths-value">${fmt(drawdownTax.incomeTax)}</span></div>
+        <div class="maths-row total"><span class="maths-label">After tax</span><span class="maths-value">${fmtR(drawdownAfterTax, tabDeflator)}/yr (${fmtR(drawdownAfterTax / 12, tabDeflator)}/mo)</span></div>
+        <div class="maths-note">The "4% rule" is based on research suggesting a 4% initial withdrawal rate allows a diversified portfolio to last 30+ years in most historical scenarios. Your pot stays invested, so income can rise or fall with markets.</div>
+      </div>
+    </details>
   `;
 
   // ── Annuity tab ──
@@ -2448,7 +2596,34 @@ function updateTabs() {
         <div class="total-sub">Income tax ${fmt(annuityTaxResult.incomeTax)}${annuityTaxResult.cgt > 0 ? ' + CGT ' + fmt(annuityTaxResult.cgt) : ''}</div>
       </div>
     </div>
-    <p class="tab-note">An annuity provides guaranteed level income for life by exchanging your pot for an insurance contract. Note: level income erodes in real terms with inflation over time. Tax estimate uses 2024/25 bands.</p>
+    <p class="tab-note">An annuity provides guaranteed level income for life by exchanging your pot for an insurance contract. <strong>Your capital is gone</strong> — you can't pass it on or change your mind. The income is fixed, so it loses buying power every year due to inflation.</p>
+    <details class="show-maths">
+      <summary>Show the working</summary>
+      <div class="show-maths-content">
+        <div class="maths-heading">How annuity income is calculated</div>
+        <div class="maths-note" style="margin-top:0;margin-bottom:6px">You hand over your entire pot to an insurance company in exchange for a guaranteed income for life. The annuity rate depends on your age, health, and market conditions. We use illustrative rates:</div>
+        ${pots.filter(p => p.type !== 'db-pension').map((pot, i) => {
+          const idx = pots.indexOf(pot);
+          let val = projected[idx];
+          const takeLump = showLump && pot.type === 'pension';
+          const lumpAmt = takeLump ? val * 0.25 : 0;
+          const base = takeLump ? val * 0.75 : val;
+          const aRate = getAnnuityRate(pot.type);
+          const inc = base * aRate;
+          return `<div class="maths-row"><span class="maths-label">${escapeHTML(pot.name)}: ${fmtR(base, tabDeflator)} &times; ${Math.round(aRate * 100)}% annuity rate</span><span class="maths-value">${fmtR(inc, tabDeflator)}/yr</span></div>`;
+        }).join('')}
+        ${pots.filter(p => p.type === 'db-pension').map(pot => `<div class="maths-row"><span class="maths-label">${escapeHTML(pot.name)} (DB guaranteed)</span><span class="maths-value">${fmtR(pot.dbIncome || 0, tabDeflator)}/yr</span></div>`).join('')}
+        <div class="maths-row"><span class="maths-label">State pension${tabIsCouple ? ' (&times;2)' : ''}</span><span class="maths-value">${fmtR(tabStatePensionTotal, tabDeflator)}/yr</span></div>
+        <div class="maths-row total"><span class="maths-label">Total gross income</span><span class="maths-value">${fmtR(annuityTotal, tabDeflator)}/yr</span></div>
+        <div class="maths-heading">Why annuity rates are higher than drawdown</div>
+        <div class="maths-note" style="margin-top:0">A 5% annuity rate vs 4% drawdown rate looks better, but there's a catch: annuity income is <strong>fixed forever</strong>. In 20 years at 2.5% inflation, ${fmt(annuityAfterTax)}/yr will feel like ${fmt(annuityAfterTax / Math.pow(1.025, 20))}/yr in today's money. With drawdown, your pot stays invested and income can grow.</div>
+        <div class="maths-heading">Annuity rates used</div>
+        <div class="maths-row"><span class="maths-label">Pension pots</span><span class="maths-value">5% (illustrative)</span></div>
+        <div class="maths-row"><span class="maths-label">S&amp;S ISA / GIA / LISA</span><span class="maths-value">4% (illustrative)</span></div>
+        <div class="maths-row"><span class="maths-label">Cash ISA / Cash LISA / Bonds</span><span class="maths-value">3% (illustrative)</span></div>
+        <div class="maths-note">Real annuity rates vary. Get a quote from an annuity broker at retirement for accurate figures.</div>
+      </div>
+    </details>
   `;
 
   // ── Compare tab ──
@@ -2458,7 +2633,13 @@ function updateTabs() {
     ? `Drawdown gives you ${fmt(diff)} more per year after tax, with flexibility to adjust withdrawals and pass on remaining capital.`
     : `Annuity gives you ${fmt(diff)} more per year after tax in guaranteed income, but you lose access to your capital.`;
 
+  const annuityIn20 = annuityAfterTax / Math.pow(1.025, 20);
+  const drawdownIn20Note = `With drawdown your pot stays invested — if markets return ~5% and you withdraw 4%, your income can grow roughly in line with inflation.`;
+
   document.getElementById('tab-compare').innerHTML = `
+    <div class="compare-warning">
+      <strong>⚠ Not a like-for-like comparison.</strong> Annuity income is <em>fixed forever</em> — it looks higher today, but inflation erodes its value every year. Drawdown income can grow because your pot stays invested. After 20 years at 2.5% inflation, today's annuity income of ${fmtR(annuityAfterTax, deflator)} would feel like ${fmtR(annuityIn20, deflator)} in today's money.
+    </div>
     <div class="compare-grid">
       <div class="compare-card ${drawdownBetter ? 'featured' : ''}">
         <h4>Drawdown (4%)</h4>
@@ -2466,6 +2647,12 @@ function updateTabs() {
         <div class="compare-detail" style="color:#D85A30;font-weight:600">After tax: ${fmtR(drawdownAfterTax, deflator)}/yr (${fmtR(drawdownAfterTax / 12, deflator)}/mo)</div>
         <div class="compare-detail">Pot drawdown: ${fmtR(drawdownTotal, deflator)}</div>
         <div class="compare-detail">State pension: ${fmtR(tabFutureSP, deflator)}</div>
+        <ul class="compare-pros">
+          <li>Income can grow with markets</li>
+          <li>Pass remaining pot to heirs</li>
+          <li>Flexible — adjust withdrawals anytime</li>
+          <li>Risk: poor markets can reduce income</li>
+        </ul>
       </div>
       <div class="compare-card ${!drawdownBetter ? 'featured' : ''}">
         <h4>Annuity</h4>
@@ -2473,9 +2660,36 @@ function updateTabs() {
         <div class="compare-detail" style="color:#D85A30;font-weight:600">After tax: ${fmtR(annuityAfterTax, deflator)}/yr (${fmtR(annuityAfterTax / 12, deflator)}/mo)</div>
         <div class="compare-detail">Pension @ 5%, ISA/GIA @ 4%, Cash/Bonds @ 3%</div>
         <div class="compare-detail">State pension: ${fmtR(tabFutureSP, deflator)}</div>
+        <ul class="compare-pros">
+          <li>Guaranteed income for life</li>
+          <li>No investment decisions to make</li>
+          <li>Income is fixed — loses value to inflation</li>
+          <li>Capital gone — nothing to pass on</li>
+        </ul>
       </div>
     </div>
     <p class="tab-note">${compNote}</p>
+    <details class="show-maths">
+      <summary>Show the working</summary>
+      <div class="show-maths-content">
+        <div class="maths-heading">Why this comparison is tricky</div>
+        <div class="maths-note" style="margin-top:0">Drawdown and annuity are fundamentally different products. Comparing year-1 income alone is misleading because the income streams behave differently over time.</div>
+        <div class="maths-heading">Year 1 income</div>
+        <div class="maths-row"><span class="maths-label">Drawdown (4% withdrawal)</span><span class="maths-value">${fmtR(drawdownAfterTax, deflator)}/yr after tax</span></div>
+        <div class="maths-row"><span class="maths-label">Annuity (level, no escalation)</span><span class="maths-value">${fmtR(annuityAfterTax, deflator)}/yr after tax</span></div>
+        <div class="maths-row"><span class="maths-label">Difference</span><span class="maths-value">${fmtR(diff, deflator)}/yr in favour of ${drawdownBetter ? 'drawdown' : 'annuity'}</span></div>
+        <div class="maths-heading">But after 20 years at 2.5% inflation…</div>
+        <div class="maths-row"><span class="maths-label">Annuity (still fixed)</span><span class="maths-value">${fmtR(annuityAfterTax, deflator)} nominal, feels like ${fmtR(annuityIn20, deflator)} today</span></div>
+        <div class="maths-row"><span class="maths-label">Drawdown (pot still invested)</span><span class="maths-value">Income can adjust with market returns</span></div>
+        <div class="maths-note">${drawdownIn20Note}</div>
+        <div class="maths-heading">What the rates mean</div>
+        <div class="maths-row"><span class="maths-label">Drawdown 4% rule</span><span class="maths-value">Withdraw 4% of pot each year</span></div>
+        <div class="maths-note" style="margin-top:0">Based on the "Trinity study" — historically, a 4% withdrawal from a diversified portfolio lasted 30+ years in most scenarios. Your capital stays invested and you keep ownership.</div>
+        <div class="maths-row"><span class="maths-label">Annuity 5% rate</span><span class="maths-value">Insurance company pays 5% of pot for life</span></div>
+        <div class="maths-note" style="margin-top:0">Higher than 4% because you're giving up your capital forever. The insurer pools longevity risk — people who die early subsidise those who live longer. You get more income but lose all flexibility and inheritance.</div>
+        <div class="maths-note"><strong>In practice:</strong> Many retirees use a blend — an annuity for essential spending (guaranteed floor) and drawdown for the rest (growth potential). This isn't an either/or decision.</div>
+      </div>
+    </details>
   `;
 
   // ── Target tab ──
@@ -3298,13 +3512,16 @@ function generatePDF() {
   const disclaimers = [
     'This report is for illustration only and does not constitute financial advice.',
     'All projections assume constant growth rates and contribution levels, which will not reflect reality.',
-    'Tax implications are not modelled — income tax, capital gains tax, and National Insurance may apply.',
+    'Tax estimates use 2024/25 income tax bands and CGT rates. They assume no other income in retirement. Personal allowance taper above £100k is modelled. Actual tax depends on your full circumstances.',
+    'Annuity income is fixed (level, non-escalating) and loses buying power to inflation every year. Drawdown income can grow if your pot stays invested. Comparing year-1 figures alone is misleading.',
     'Annuity rates are illustrative. Actual rates depend on age, health, market conditions, and provider.',
+    'GIA withdrawals are subject to Capital Gains Tax on the gains portion. The £3,000 annual CGT allowance and 20% higher rate are used as a conservative estimate.',
     'LISA withdrawals before age 60 may incur a 25% government penalty.',
     'Premium Bonds returns are based on the NS&I prize fund rate — actual returns are probabilistic and may be zero.',
     'The 4% withdrawal rule is based on historical US equity/bond returns and is not guaranteed for the future.',
     'Past performance is not a reliable indicator of future results.',
     'Inflation is modelled at a flat 2.5%/yr — actual inflation will vary.',
+    'In couple mode, each person\'s income is taxed independently using their own personal allowance and bands.',
     'Consider seeking independent financial advice before making retirement decisions.',
   ];
 

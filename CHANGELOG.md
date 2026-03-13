@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-03-13 (v2)
+
+### New features
+- **GIA (General Investment Account)** — new pot type for investments outside tax wrappers, with CGT modelling on withdrawals
+- **Tax modelling** — estimated income tax (2024/25 bands, personal allowance taper above £100k) and CGT on GIA gains shown across all income tabs
+- **Couple mode** — toggle to plan for two people with separate ages, retirement ages, salaries, and pot ownership. Each person taxed independently
+- **Inflation toggle** — view all figures in today's money to see real purchasing power, with tooltip explaining what this means
+- **PLSA benchmarks** — Retirement Living Standards (Minimum, Moderate, Comfortable) shown as a visual bar beneath income totals, with single/couple figures
+- **DB pension helper** — collapsible service-years calculator to estimate DB income from salary, accrual rate, and years of service
+- **"Show the working" sections** — expandable breakdowns on drawdown, annuity, and compare tabs explaining every calculation step
+- **Honest annuity comparison** — compare tab now includes a warning about annuity income eroding with inflation, pro/con lists, and detailed explanation of why year-1 comparisons are misleading
+
+### Improvements
+- Pot owner badges now show ⇄ icon to indicate clickability, with purple highlight for partner-owned pots
+- Compare tab shows pros and cons for each strategy, not just raw numbers
+- PDF disclaimers updated to reflect tax modelling, GIA CGT, couple mode, and annuity inflation erosion
+- Default age placeholder changed from 30 to 18
+
+### Fixes
+- Employer contribution display now updates immediately when changed (was stale until full re-render)
+- Old localStorage data with `contribMode: "fixed"` or missing `employeeContrib` no longer causes NaN values
+- Partner salary correctly used for percent-mode contributions on partner-owned pots
+
 ## 2026-03-13
 
 ### New features
