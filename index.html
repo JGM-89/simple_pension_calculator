@@ -6,6 +6,8 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:;">
 <title>Retirement Planner</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha384-bs/nf9FbdNouRbMiFcrcZfLXYPKiPaGVGplVbv7dLGECccEXDW+S3zjqSKR5ZEaD" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" crossorigin="anonymous"></script>
 <style>
 /* ── Theme variables ── */
 :root {
@@ -129,6 +131,7 @@ h1 {
   align-items: center;
   gap: 8px;
   margin-bottom: 12px;
+  padding-right: 24px;
 }
 
 .pot-name {
@@ -816,6 +819,22 @@ h1 {
   color: #D85A30;
 }
 
+/* ── PDF button ── */
+.pdf-btn {
+  background: var(--color-accent-green);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.pdf-btn:hover {
+  background: #177a5a;
+}
+
 /* ── Header row ── */
 .header-row {
   display: flex;
@@ -1015,6 +1034,10 @@ h1 {
 </div>
 
 <!-- 9. Disclaimers -->
+<div id="pdfBtnWrap" style="display:none; text-align:center; margin: 24px 0;">
+  <button class="pdf-btn" id="pdfBtn" type="button">Download PDF Report</button>
+</div>
+
 <div class="disclaimers">
   <h3>Assumptions &amp; Disclaimers</h3>
   <ul>
@@ -2076,6 +2099,7 @@ function updateEmptyState() {
   const empty = pots.length === 0;
   document.getElementById('emptyState').style.display = empty ? '' : 'none';
   document.getElementById('resultsSection').style.display = empty ? 'none' : '';
+  document.getElementById('pdfBtnWrap').style.display = empty ? 'none' : '';
 }
 
 function updateWithoutRerender() {
@@ -2118,6 +2142,579 @@ if (saved) {
 }
 retireAgeInput.min = parseInt(currentAgeInput.value) || 18;
 updateAll();
+
+// ── PDF Export ──
+document.getElementById('pdfBtn').addEventListener('click', generatePDF);
+
+function generatePDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const pageW = 210, pageH = 297;
+  const margin = 18;
+  const contentW = pageW - margin * 2;
+  const footerZone = 16; // space reserved for footer at bottom
+  const safeBottom = pageH - footerZone;
+  const SAFETY = 4; // mm buffer added to all height estimates
+  const ROW_H = 8;  // autoTable row height at fontSize 8-9, cellPadding 2
+
+  // ── Flow layout primitives ──
+  function flowBlock(estimatedH, renderFn) {
+    if (y + estimatedH + SAFETY > safeBottom) { doc.addPage(); y = 20; }
+    renderFn();
+  }
+
+  function flowCompound(parts) {
+    const totalH = parts.reduce((sum, p) => sum + p.h, 0) + SAFETY;
+    const available = safeBottom - y;
+    const freshPage = safeBottom - 20;
+    if (totalH <= available) {
+      // Fits on current page
+      parts.forEach(p => p.render());
+    } else if (totalH <= freshPage) {
+      // Won't fit here, but fits on a fresh page — keep together
+      doc.addPage(); y = 20;
+      parts.forEach(p => p.render());
+    } else {
+      // Too large for any single page — let each part flow independently
+      parts.forEach(p => flowBlock(p.h, p.render));
+    }
+  }
+
+  const { currentAge, retireAge, rate } = getInputs();
+  const years = Math.max(retireAge - currentAge, 1);
+  const salary = parseFloat(salaryInput.dataset.raw) || 0;
+  const showLump = document.getElementById('lumpSumToggle').checked;
+  const deflator = Math.pow(1 + INFLATION_RATE, years);
+  const futureSP = futureStatePension(years);
+
+  const dcPots = pots.filter(p => p.type !== 'db-pension');
+  const dbPots = pots.filter(p => p.type === 'db-pension');
+  const hasLisas = pots.some(p => isLisa(p.type));
+  const hasDB = dbPots.length > 0;
+  const hasPensions = pots.some(p => p.type === 'pension');
+
+  // Helpers
+  const fmtPdf = n => '£' + Math.round(n).toLocaleString('en-GB');
+  const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  function addFooter(doc, pageNum, totalPages) {
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text('Retirement Planner Report — for illustration only, not financial advice', margin, pageH - 8);
+    doc.text('Page ' + pageNum + ' of ' + totalPages, pageW - margin, pageH - 8, { align: 'right' });
+  }
+
+  function sectionTitle(doc, y, title) {
+    y += 4;
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(29, 158, 117);
+    doc.text(title, margin, y);
+    doc.setDrawColor(29, 158, 117);
+    doc.setLineWidth(0.5);
+    doc.line(margin, y + 1.5, pageW - margin, y + 1.5);
+    return y + 8;
+  }
+
+  function labelValue(doc, y, label, value, indent) {
+    indent = indent || 0;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100);
+    doc.text(label, margin + indent, y);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(40);
+    doc.text(value, pageW - margin, y, { align: 'right' });
+    return y + 6;
+  }
+
+  // ═══════════ PAGE 1: Overview ═══════════
+  let y = 20;
+
+  // Title
+  doc.setFontSize(22);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(26, 26, 46);
+  doc.text('Retirement Plan Report', margin, y);
+  y += 8;
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(120);
+  doc.text('Generated ' + today + '  |  All projections are estimates for illustration only', margin, y);
+  y += 12;
+
+  // Key assumptions box
+  y = sectionTitle(doc, y, 'Key Assumptions');
+
+  const boxW = contentW * 0.55;
+  const boxX = margin + (contentW - boxW) / 2;
+  doc.setFillColor(240, 248, 243);
+  doc.setDrawColor(29, 158, 117);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(boxX, y, boxW, 48, 3, 3, 'FD');
+  y += 6;
+
+  function boxLabelValue(doc, y, label, value) {
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100);
+    doc.text(label, boxX + 6, y);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(40);
+    doc.text(value, boxX + boxW - 6, y, { align: 'right' });
+    return y + 6;
+  }
+
+  y = boxLabelValue(doc, y, 'Current age', currentAge + '');
+  y = boxLabelValue(doc, y, 'Retirement age', retireAge + '');
+  y = boxLabelValue(doc, y, 'Years to retirement', years + '');
+  y = boxLabelValue(doc, y, 'Annual growth rate', Math.round(rate * 100) + '%');
+  y = boxLabelValue(doc, y, 'Annual salary', salary > 0 ? fmtPdf(salary) : 'Not specified');
+  y = boxLabelValue(doc, y, 'Inflation assumption', '2.5% per year');
+  y = boxLabelValue(doc, y, 'State pension (current)', fmtPdf(STATE_PENSION) + '/yr');
+  y += 5;
+
+  // Growth chart
+  y = sectionTitle(doc, y, 'Projected Growth');
+
+  if (chart) {
+    try {
+      // Force light-mode colours so chart is legible on white PDF background
+      const lightText = '#6b7280', lightGrid = '#e0e0e0';
+      const saved = {
+        xGridColor: chart.options.scales.x.grid.color,
+        yGridColor: chart.options.scales.y.grid.color,
+        xTickColor: chart.options.scales.x.ticks.color,
+        yTickColor: chart.options.scales.y.ticks.color,
+        xTitleColor: chart.options.scales.x.title.color,
+        yTitleColor: chart.options.scales.y.title.color,
+      };
+      chart.options.scales.x.grid.color = lightGrid;
+      chart.options.scales.y.grid.color = lightGrid;
+      chart.options.scales.x.ticks.color = lightText;
+      chart.options.scales.y.ticks.color = lightText;
+      chart.options.scales.x.title.color = lightText;
+      chart.options.scales.y.title.color = lightText;
+      chart.update('none');
+
+      const canvas = chart.canvas;
+      const imgData = canvas.toDataURL('image/png');
+      const chartAspect = canvas.width / canvas.height;
+      const chartH = Math.min(contentW / chartAspect, 90);
+      doc.addImage(imgData, 'PNG', margin, y, contentW, chartH);
+      y += chartH + 4;
+
+      // Restore original colours
+      chart.options.scales.x.grid.color = saved.xGridColor;
+      chart.options.scales.y.grid.color = saved.yGridColor;
+      chart.options.scales.x.ticks.color = saved.xTickColor;
+      chart.options.scales.y.ticks.color = saved.yTickColor;
+      chart.options.scales.x.title.color = saved.xTitleColor;
+      chart.options.scales.y.title.color = saved.yTitleColor;
+      chart.update('none');
+    } catch(e) {
+      console.error('Chart PDF export failed:', e);
+    }
+  }
+
+  doc.setFontSize(8);
+  doc.setTextColor(150);
+  doc.text('Chart shows projected nominal pot values assuming ' + Math.round(rate * 100) + '% annual growth.', margin, y);
+
+  // ═══════════ Pot Details (continue on same page if room) ═══════════
+  // Ensure section title + at least a few table rows fit together
+  flowBlock(12 + Math.min((dcPots.length + 2) * ROW_H, 3 * ROW_H), () => {
+    y = sectionTitle(doc, y, 'Your Retirement Pots');
+  });
+
+  // DC pots table
+  if (dcPots.length > 0) {
+    const tableHead = [['Pot name', 'Type', 'Current value', 'Monthly in', 'Projected value', 'Growth', '4% Drawdown']];
+    const tableBody = dcPots.map(pot => {
+      const projected = projectPot(pot, years, rate);
+      const monthly = getMonthlyContrib(pot);
+      const totalContribs = pot.value + getTotalContributions(pot, years);
+      const lisaBonus = getLisaBonusMonthly(pot) * getLisaContribYears(years) * 12;
+      const totalIn = totalContribs + lisaBonus;
+      const growth = projected - totalIn;
+      const takeLump = showLump && pot.type === 'pension';
+      const drawdownBase = takeLump ? projected * 0.75 : projected;
+      const drawdown = drawdownBase * DRAWDOWN_RATE;
+
+      let monthlyStr = fmtPdf(monthly) + '/mo';
+      if (lisaBonus > 0) monthlyStr += ' + ' + fmtPdf(getLisaBonusMonthly(pot) * 12) + ' bonus/yr';
+
+      return [
+        pot.name,
+        potTypeLabel(pot.type),
+        fmtPdf(pot.value),
+        monthlyStr,
+        fmtPdf(projected),
+        fmtPdf(growth),
+        fmtPdf(drawdown) + '/yr'
+      ];
+    });
+
+    // Totals row
+    let totalCurrent = 0, totalMonthly = 0, totalProjected = 0, totalGrowth = 0, totalDrawdown = 0;
+    dcPots.forEach(pot => {
+      const projected = projectPot(pot, years, rate);
+      const monthly = getMonthlyContrib(pot);
+      const totalContribs = pot.value + getTotalContributions(pot, years);
+      const lisaBonus = getLisaBonusMonthly(pot) * getLisaContribYears(years) * 12;
+      const totalIn = totalContribs + lisaBonus;
+      totalCurrent += pot.value;
+      totalMonthly += monthly;
+      totalProjected += projected;
+      totalGrowth += projected - totalIn;
+      const takeLump = showLump && pot.type === 'pension';
+      const drawdownBase = takeLump ? projected * 0.75 : projected;
+      totalDrawdown += drawdownBase * DRAWDOWN_RATE;
+    });
+    tableBody.push([
+      { content: 'TOTAL', styles: { fontStyle: 'bold' } },
+      '',
+      { content: fmtPdf(totalCurrent), styles: { fontStyle: 'bold' } },
+      { content: fmtPdf(totalMonthly) + '/mo', styles: { fontStyle: 'bold' } },
+      { content: fmtPdf(totalProjected), styles: { fontStyle: 'bold' } },
+      { content: fmtPdf(totalGrowth), styles: { fontStyle: 'bold' } },
+      { content: fmtPdf(totalDrawdown) + '/yr', styles: { fontStyle: 'bold' } }
+    ]);
+
+    doc.autoTable({
+      startY: y,
+      head: tableHead,
+      body: tableBody,
+      margin: { left: margin, right: margin, bottom: footerZone },
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [29, 158, 117], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [245, 245, 245] },
+      columnStyles: {
+        0: { cellWidth: 32 },
+        1: { cellWidth: 22 },
+      },
+    });
+    y = doc.lastAutoTable.finalY + 6;
+  }
+
+  // DB pensions
+  if (hasDB) {
+    flowBlock(5 + (dbPots.length + 1) * ROW_H, () => {});
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(40);
+    doc.text('Defined Benefit Pensions', margin, y);
+    y += 5;
+
+    const dbHead = [['Scheme name', 'Annual income', 'Monthly income', 'Inflation-linked']];
+    const dbBody = dbPots.map(pot => [
+      pot.name,
+      fmtPdf(pot.dbIncome || 0) + '/yr',
+      fmtPdf((pot.dbIncome || 0) / 12) + '/mo',
+      pot.dbInflationLinked ? 'Yes' : 'No'
+    ]);
+
+    doc.autoTable({
+      startY: y,
+      head: dbHead,
+      body: dbBody,
+      margin: { left: margin, right: margin, bottom: footerZone },
+      styles: { fontSize: 9, cellPadding: 2 },
+      headStyles: { fillColor: [99, 153, 34], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [245, 245, 245] },
+    });
+    y = doc.lastAutoTable.finalY + 6;
+  }
+
+  // State pension
+  flowBlock(25, () => {});
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(40);
+  doc.text('State Pension', margin, y);
+  y += 6;
+  y = labelValue(doc, y, 'Current full rate', fmtPdf(STATE_PENSION) + '/yr');
+  y = labelValue(doc, y, 'Projected at retirement (inflated 2.5%/yr)', fmtPdf(futureSP) + '/yr');
+  y = labelValue(doc, y, 'Monthly at retirement', fmtPdf(futureSP / 12) + '/mo');
+
+  // Lump sum summary
+  if (showLump && hasPensions) {
+    flowBlock(22, () => {});
+    y += 4;
+    let totalLump = 0;
+    pots.forEach(pot => {
+      if (pot.type === 'pension') totalLump += projectPot(pot, years, rate) * 0.25;
+    });
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(40);
+    doc.text('25% Tax-Free Lump Sum', margin, y);
+    y += 6;
+    y = labelValue(doc, y, 'Total lump sum from pensions', fmtPdf(totalLump));
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(120);
+    doc.text('Drawdown figures below reflect reduced pot after lump sum withdrawal.', margin, y);
+    y += 4;
+  }
+
+  // ═══════════ Income Projections — both with and without lump sum ═══════════
+
+  // Helper: compute income totals for a given lump sum scenario
+  function computeIncome(withLump) {
+    let drawdown = 0, annuity = 0, lump = 0, dbInc = 0;
+    dbPots.forEach(pot => { dbInc += pot.dbIncome || 0; });
+    const rows = dcPots.map(pot => {
+      const projected = projectPot(pot, years, rate);
+      const takeLump = withLump && pot.type === 'pension';
+      const potLump = pot.type === 'pension' ? projected * 0.25 : 0;
+      if (takeLump) lump += potLump;
+      const base = takeLump ? projected * 0.75 : projected;
+      const dInc = base * DRAWDOWN_RATE;
+      const aInc = base * getAnnuityRate(pot.type);
+      drawdown += dInc;
+      annuity += aInc;
+      return { name: pot.name, type: pot.type, projected, dInc, aInc };
+    });
+    drawdown += futureSP + dbInc;
+    annuity += futureSP + dbInc;
+    return { rows, drawdown, annuity, lump, dbInc };
+  }
+
+  const noLump = computeIncome(false);
+  const withLump = computeIncome(true);
+
+  const buildIncomeTable = (data, startY) => {
+    const rows = [];
+    data.rows.forEach(r => {
+      rows.push([r.name, potTypeLabel(r.type), fmtPdf(r.projected), fmtPdf(r.dInc) + '/yr', getAnnuityLabel(r.type), fmtPdf(r.aInc) + '/yr']);
+    });
+    dbPots.forEach(pot => {
+      const inc = pot.dbIncome || 0;
+      rows.push([pot.name, 'DB Pension', 'N/A', fmtPdf(inc) + '/yr', 'N/A', fmtPdf(inc) + '/yr']);
+    });
+    rows.push(['State Pension', '', 'N/A', fmtPdf(futureSP) + '/yr', '', fmtPdf(futureSP) + '/yr']);
+    rows.push([
+      { content: 'TOTAL', styles: { fontStyle: 'bold' } }, '', '',
+      { content: fmtPdf(data.drawdown) + '/yr', styles: { fontStyle: 'bold', textColor: [29, 158, 117] } }, '',
+      { content: fmtPdf(data.annuity) + '/yr', styles: { fontStyle: 'bold', textColor: [29, 158, 117] } }
+    ]);
+    doc.autoTable({
+      startY,
+      head: [['Pot', 'Type', 'Pot value', 'Drawdown (4%)', 'Ann. rate', 'Annuity income']],
+      body: rows,
+      margin: { left: margin, right: margin, bottom: footerZone },
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [29, 158, 117], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [245, 245, 245] },
+      columnStyles: { 0: { cellWidth: 30 }, 1: { cellWidth: 22 } },
+    });
+    return doc.lastAutoTable.finalY + 6;
+  };
+
+  function drawComparisonBox(label, drawdownVal, annuityVal, startY) {
+    startY = sectionTitle(doc, startY, label);
+    const colL = margin + 4;
+    const colR = margin + contentW / 2 + 7;
+    doc.setFillColor(240, 248, 243);
+    doc.roundedRect(margin, startY, contentW / 2 - 3, 34, 2, 2, 'F');
+    doc.setFillColor(243, 243, 250);
+    doc.roundedRect(margin + contentW / 2 + 3, startY, contentW / 2 - 3, 34, 2, 2, 'F');
+
+    let cy = startY + 7;
+    doc.setFontSize(11); doc.setFont('helvetica', 'bold');
+    doc.setTextColor(29, 158, 117); doc.text('Drawdown (4%)', colL, cy);
+    doc.setTextColor(127, 119, 221); doc.text('Annuity', colR, cy);
+    cy += 7;
+    doc.setFontSize(13); doc.setFont('helvetica', 'bold'); doc.setTextColor(40);
+    doc.text(fmtPdf(drawdownVal) + '/yr', colL, cy);
+    doc.text(fmtPdf(annuityVal) + '/yr', colR, cy);
+    cy += 6;
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(100);
+    doc.text(fmtPdf(drawdownVal / 12) + '/mo', colL, cy);
+    doc.text(fmtPdf(annuityVal / 12) + '/mo', colR, cy);
+    cy += 6;
+    doc.text('Today\'s money: ' + fmtPdf(drawdownVal / deflator) + '/yr', colL, cy);
+    doc.text('Today\'s money: ' + fmtPdf(annuityVal / deflator) + '/yr', colR, cy);
+    return startY + 42;
+  }
+
+  // ═══════════ Income Projection Renderer ═══════════
+  const incomeTableRows = dcPots.length + dbPots.length + 3; // pots + state pension + total + header
+  const INCOME_TABLE_H = incomeTableRows * ROW_H;
+  const COMPARISON_BOX_H = 54; // sectionTitle(12) + box(34) + fine print(8)
+  const SECTION_TITLE_H = 12;
+
+  function renderIncomeSection(title, data, comparisonLabel, noteText) {
+    const tableH = INCOME_TABLE_H;
+    const boxH = COMPARISON_BOX_H;
+    const noteH = noteText ? 12 : 0;
+
+    flowCompound([
+      { h: SECTION_TITLE_H + tableH + noteH, render: () => {
+        // Ensure title isn't orphaned from table
+        flowBlock(SECTION_TITLE_H + Math.min(tableH, 3 * ROW_H), () => {
+          y = sectionTitle(doc, y, title);
+        });
+        y = buildIncomeTable(data, y);
+        if (noteText) {
+          doc.setFontSize(8);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(120);
+          doc.text(noteText, margin, y);
+          y += 8;
+        }
+      }},
+      { h: boxH, render: () => {
+        y = drawComparisonBox(comparisonLabel, data.drawdown, data.annuity, y);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(120);
+        doc.text('"Today\'s money" deflates future income by 2.5%/yr to show purchasing power in current terms.', margin, y);
+        y += 4;
+      }},
+    ]);
+  }
+
+  // ═══════════ Income Without Lump Sum ═══════════
+  renderIncomeSection(
+    'Income Projections — Without Lump Sum',
+    noLump,
+    'Summary — Without Lump Sum',
+    null
+  );
+
+  // ═══════════ Income With 25% Lump Sum ═══════════
+  if (hasPensions) {
+    renderIncomeSection(
+      'Income Projections — With 25% Tax-Free Lump Sum',
+      withLump,
+      'Summary — With 25% Lump Sum (+ ' + fmtPdf(withLump.lump) + ' cash)',
+      'Lump sum total: ' + fmtPdf(withLump.lump) + ' withdrawn tax-free. Drawdown/annuity income is from remaining 75% of pension pots.'
+    );
+  }
+
+  // ═══════════ Explanations & Disclaimers (always own page) ═══════════
+  doc.addPage();
+  y = 20;
+  y = sectionTitle(doc, y, 'Understanding Your Retirement Income');
+
+  function explainBlock(doc, y, title, text) {
+    doc.setFontSize(8.5);
+    const lines = doc.splitTextToSize(text, contentW);
+    const blockH = 5 + lines.length * 4 + 4;
+    if (y + blockH > safeBottom) { doc.addPage(); y = 20; }
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(40);
+    doc.text(title, margin, y);
+    y += 5;
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(80);
+    doc.text(lines, margin, y);
+    y += lines.length * 4 + 4;
+    return y;
+  }
+
+  y = explainBlock(doc, y, 'What is drawdown?',
+    'Drawdown (also called flexible access or UFPLS) means keeping your pension invested and withdrawing a regular income from it. ' +
+    'This report uses the "4% rule" — withdrawing 4% of your pot each year. Research suggests this rate allows a portfolio to last at least 30 years ' +
+    'in most market conditions, though this is not guaranteed. Your income will fluctuate with investment performance, but you retain ' +
+    'full control of your pot and can pass any remainder to beneficiaries.'
+  );
+
+  y = explainBlock(doc, y, 'What is an annuity?',
+    'An annuity is an insurance product where you exchange your pension pot for a guaranteed income for life. ' +
+    'Once purchased, the income is fixed (for a level annuity) regardless of market conditions. ' +
+    'However, a level annuity loses purchasing power over time due to inflation. ' +
+    'This report uses illustrative annuity rates: 5% for pensions, 4% for S&S ISAs/LISAs, and 3% for cash/bond products. ' +
+    'Actual annuity rates depend on your age, health, interest rates, and the provider.'
+  );
+
+  y = explainBlock(doc, y, 'State pension',
+    'The full new State Pension is currently ' + fmtPdf(STATE_PENSION) + '/yr (2024/25). You need 35 qualifying years of National Insurance contributions ' +
+    'to get the full amount. This report inflates the state pension by 2.5%/yr to match the nominal terms used for pot projections. ' +
+    'In reality, the State Pension rises by the triple lock — the highest of inflation (CPI), average earnings growth, or 2.5%.'
+  );
+
+  y = explainBlock(doc, y, '25% tax-free lump sum',
+    'When you access your pension (from age 55, rising to 57 in 2028), you can take up to 25% of your pot as a tax-free lump sum. ' +
+    'The remaining 75% is then subject to income tax when withdrawn. This report models the lump sum as a one-off withdrawal at retirement, ' +
+    'with drawdown/annuity income calculated on the remaining 75%. This report shows both scenarios so you can compare.'
+  );
+
+  if (hasLisas) {
+    y = explainBlock(doc, y, 'Lifetime ISA (LISA)',
+      'LISAs offer a 25% government bonus on contributions up to £4,000/yr (maximum £1,000 bonus/yr). ' +
+      'You can contribute until age 50. Withdrawals before age 60 (or without a qualifying reason like buying a first home) ' +
+      'incur a 25% penalty on the amount withdrawn, which effectively means you lose your bonus plus some of your original contributions. ' +
+      'This report assumes funds are accessed at retirement without penalty.'
+    );
+  }
+
+  if (hasDB) {
+    y = explainBlock(doc, y, 'Defined benefit (DB) pensions',
+      'A DB pension (also called a final salary or career average pension) pays a guaranteed annual income based on your salary and years of service. ' +
+      'Unlike defined contribution pots, there is no investment pot — your employer guarantees the income. ' +
+      'Check your annual benefit statement for your projected pension amount. If your scheme is inflation-linked, ' +
+      'the income will rise each year (typically with CPI or RPI, possibly capped).'
+    );
+  }
+
+  y = explainBlock(doc, y, 'Growth rate assumption',
+    'The default ' + Math.round(rate * 100) + '% growth rate assumes investment in a broad global equity tracker fund (e.g. FTSE Global All Cap). ' +
+    'This is a nominal return before inflation. Actual returns will vary year by year and may be higher or lower. ' +
+    'Cash ISAs and Premium Bonds use their own specified rates rather than the equity growth rate.'
+  );
+
+  // Disclaimers — keep heading with at least a few items
+  flowBlock(60, () => {});
+  y = sectionTitle(doc, y, 'Important Disclaimers');
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100);
+
+  const disclaimers = [
+    'This report is for illustration only and does not constitute financial advice.',
+    'All projections assume constant growth rates and contribution levels, which will not reflect reality.',
+    'Tax implications are not modelled — income tax, capital gains tax, and National Insurance may apply.',
+    'Annuity rates are illustrative. Actual rates depend on age, health, market conditions, and provider.',
+    'LISA withdrawals before age 60 may incur a 25% government penalty.',
+    'Premium Bonds returns are based on the NS&I prize fund rate — actual returns are probabilistic and may be zero.',
+    'The 4% withdrawal rule is based on historical US equity/bond returns and is not guaranteed for the future.',
+    'Past performance is not a reliable indicator of future results.',
+    'Inflation is modelled at a flat 2.5%/yr — actual inflation will vary.',
+    'Consider seeking independent financial advice before making retirement decisions.',
+  ];
+
+  disclaimers.forEach(d => {
+    const lines = doc.splitTextToSize('• ' + d, contentW);
+    doc.text(lines, margin, y);
+    y += lines.length * 3.5 + 1.5;
+  });
+
+  y += 6;
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(29, 158, 117);
+  doc.text('Generated by Retirement Planner — a free, open-source, privacy-first tool.', margin, y);
+  y += 4;
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(120);
+  doc.text('All calculations run in your browser. No data is sent to any server.', margin, y);
+
+  const totalPages = doc.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    addFooter(doc, i, totalPages);
+  }
+
+  doc.save('retirement-plan-report.pdf');
+}
 </script>
 
 </body>
