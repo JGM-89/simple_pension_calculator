@@ -277,22 +277,32 @@ h1 {
 .pot-owner-badge {
   font-size: 0.65rem;
   font-weight: 600;
-  padding: 1px 6px;
+  padding: 2px 8px;
   border-radius: 99px;
-  border: 1px solid var(--color-border);
+  border: 1.5px dashed var(--color-text-secondary);
   color: var(--color-text-secondary);
   cursor: pointer;
   background: transparent;
-  transition: background 0.15s;
+  transition: all 0.15s;
+}
+
+.pot-owner-badge::after {
+  content: ' \21C4';
+  font-size: 0.7rem;
 }
 
 .pot-owner-badge:hover {
   background: var(--color-input-bg);
+  border-style: solid;
+  border-color: var(--color-accent-green);
+  color: var(--color-accent-green);
 }
 
 .pot-owner-badge.partner {
   border-color: #7F77DD;
+  border-style: solid;
   color: #7F77DD;
+  background: rgba(127, 119, 221, 0.1);
 }
 
 .pot-rate-group {
@@ -870,6 +880,63 @@ h1 {
   color: var(--color-text-secondary);
 }
 
+/* ── Info hint ── */
+.info-hint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 1px solid var(--color-text-secondary);
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  cursor: help;
+  vertical-align: middle;
+  margin-left: 2px;
+  position: relative;
+}
+
+.info-hint:hover {
+  background: var(--color-accent-green);
+  border-color: var(--color-accent-green);
+  color: #fff;
+}
+
+.info-hint:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.78rem;
+  font-weight: 400;
+  line-height: 1.5;
+  width: 280px;
+  white-space: normal;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  pointer-events: none;
+}
+
+.info-hint:hover::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--color-border);
+  z-index: 11;
+  pointer-events: none;
+}
+
 .after-tax {
   font-size: 0.85rem;
   color: #D85A30;
@@ -1210,7 +1277,7 @@ h1 {
 <h3 class="section-heading">Income Breakdown</h3>
 <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:12px">
 <label class="lump-sum-toggle" style="margin-bottom:0"><input type="checkbox" id="lumpSumToggle"> Take 25% tax-free pension lump sum</label>
-<label class="lump-sum-toggle" style="margin-bottom:0"><input type="checkbox" id="inflationToggle"> Show in today's money</label>
+<label class="lump-sum-toggle" style="margin-bottom:0"><input type="checkbox" id="inflationToggle"> Show in today's money <span class="info-hint" data-tip="Prices rise over time (inflation). £100,000 in 30 years won't buy as much as £100,000 today. This adjusts future amounts so you can see what they'd actually feel like in terms of today's spending power. We assume 2.5% per year.">?</span></label>
 </div>
 <div class="tabs">
   <button class="tab-btn active" data-tab="drawdown">Drawdown</button>
@@ -1570,7 +1637,7 @@ function renderPots() {
 
     const isCouple = document.getElementById('coupleToggle').checked;
     const ownerLabel = pot.owner === 'partner' ? 'Partner' : 'You';
-    const ownerBadge = isCouple ? `<button class="pot-owner-badge ${pot.owner === 'partner' ? 'partner' : ''}" data-index="${i}" title="Click to switch owner">${ownerLabel}</button>` : '';
+    const ownerBadge = isCouple ? `<button class="pot-owner-badge ${pot.owner === 'partner' ? 'partner' : ''}" data-index="${i}" title="Click to assign to ${pot.owner === 'partner' ? 'you' : 'partner'}">${ownerLabel}</button>` : '';
 
     // DB pension has a completely different card layout
     if (pot.type === 'db-pension') {
