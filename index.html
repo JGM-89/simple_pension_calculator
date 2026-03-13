@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:;">
+<title>Retirement Planner</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha384-bs/nf9FbdNouRbMiFcrcZfLXYPKiPaGVGplVbv7dLGECccEXDW+S3zjqSKR5ZEaD" crossorigin="anonymous"></script>
+<style>
+/* ── Theme variables ── */
+:root {
+  --color-bg: #f5f5f5;
+  --color-surface: #ffffff;
+  --color-text-primary: #1a1a2e;
+  --color-text-secondary: #6b7280;
+  --color-border: #e0e0e0;
+  --color-accent-green: #1D9E75;
+  --color-input-bg: #f9fafb;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0f1117;
+    --color-surface: #1a1c25;
+    --color-text-primary: #e8e8ed;
+    --color-text-secondary: #9ca3af;
+    --color-border: #2e3040;
+    --color-accent-green: #1D9E75;
+    --color-input-bg: #23252f;
+  }
+}
+
+/* ── Reset & base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  line-height: 1.5;
+  padding: 24px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 1.6rem;
+  margin-bottom: 24px;
+  font-weight: 700;
+}
+
+/* ── Controls row ── */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 24px;
+  padding: 20px;
+  background: var(--color-surface);
+  border: 0.5px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 160px;
+}
+
+.control-group label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.salary-display {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  background: transparent;
+  border: none;
+  padding: 2px 0;
+  outline: none;
+  width: 100%;
+  border-radius: 4px;
+}
+
+.salary-display:hover {
+  background: var(--color-input-bg);
+  padding: 2px 4px;
+}
+
+.salary-display:focus {
+  background: var(--color-input-bg);
+  padding: 2px 4px;
+  outline: 2px solid var(--color-accent-green);
+}
+
+.control-group input[type="range"] {
+  width: 100%;
+  accent-color: var(--color-accent-green);
+}
+
+.control-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* ── Pot cards grid ── */
+.pots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.pot-card {
+  background: var(--color-surface);
+  border: 0.5px solid var(--color-border);
+  border-radius: 12px;
+  padding: 16px;
+  position: relative;
+}
+
+.pot-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.pot-name {
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--color-text-primary);
+  padding: 2px 4px;
+  border-radius: 4px;
+  min-width: 60px;
+}
+
+.pot-name:hover {
+  background: var(--color-input-bg);
+}
+
+.pot-name:focus {
+  outline: 2px solid var(--color-accent-green);
+  background: var(--color-input-bg);
+}
+
+.pot-type-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--color-accent-green);
+  color: #fff;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s;
+}
+
+.pot-type-badge.isa {
+  background: #378ADD;
+}
+
+.pot-type-badge.cash-isa {
+  background: #BA7517;
+}
+
+.pot-type-badge.premium-bonds {
+  background: #D4537E;
+}
+
+.pot-rate-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+
+.pot-rate-group label {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.pot-rate-group input {
+  width: 80px;
+  padding: 6px 10px;
+  border: 0.5px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-input-bg);
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+}
+
+.contrib-equiv {
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+  font-style: italic;
+}
+
+.pot-value-group {
+  margin-bottom: 12px;
+}
+
+.pot-value-label {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 2px;
+}
+
+.pot-value-input {
+  font-size: 1.3rem;
+  font-weight: 700;
+  background: transparent;
+  border: none;
+  padding: 2px 4px;
+  width: 100%;
+  outline: none;
+  border-radius: 4px;
+}
+
+.pot-value-input:hover {
+  background: var(--color-input-bg);
+}
+
+.pot-value-input:focus {
+  background: var(--color-input-bg);
+  outline: 2px solid var(--color-accent-green);
+}
+
+/* ── Contributions ── */
+.pot-contrib-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.pot-contrib-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pot-contrib-field label {
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+}
+
+.pot-contrib-field input {
+  width: 100%;
+  padding: 6px 10px;
+  border: 0.5px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-input-bg);
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+}
+
+.contrib-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 8px;
+  border: 0.5px solid var(--color-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.contrib-mode-btn {
+  padding: 3px 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.contrib-mode-btn.active {
+  background: var(--color-accent-green);
+  color: #fff;
+}
+
+.pot-remove {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.pot-remove:hover {
+  color: #D85A30;
+  background: var(--color-input-bg);
+}
+
+/* ── Add pot ── */
+.add-pot-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.add-pot-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  background: var(--color-surface);
+  border: 1.5px dashed var(--color-border);
+  border-radius: 12px;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.add-pot-btn:hover {
+  border-color: var(--color-accent-green);
+  color: var(--color-accent-green);
+}
+
+.add-pot-form {
+  display: none;
+  background: var(--color-surface);
+  border: 0.5px solid var(--color-accent-green);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  max-width: 400px;
+}
+
+.add-pot-form.open {
+  display: block;
+}
+
+.add-pot-form h3 {
+  font-size: 1rem;
+  margin-bottom: 14px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.form-field label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.form-field input[type="text"],
+.form-field input[type="number"] {
+  padding: 8px 12px;
+  border: 0.5px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-input-bg);
+  color: var(--color-text-primary);
+  font-size: 0.95rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.btn-primary {
+  padding: 8px 20px;
+  background: var(--color-accent-green);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.btn-primary:hover { opacity: 0.9; }
+
+.btn-secondary {
+  padding: 8px 20px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: 0.5px solid var(--color-border);
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: var(--color-input-bg);
+}
+
+/* ── Chart ── */
+.chart-container {
+  background: var(--color-surface);
+  border: 0.5px solid var(--color-border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 8px;
+}
+
+.chart-container canvas {
+  width: 100% !important;
+  height: 360px !important;
+}
+
+/* ── Legend ── */
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 0 4px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* ── Pot summary cards ── */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.summary-card {
+  background: var(--color-surface);
+  border: 0.5px solid var(--color-border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.summary-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.summary-card-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.summary-card-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.summary-card-projected {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.summary-card-start {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.summary-card-drawdown {
+  font-size: 0.85rem;
+  color: var(--color-accent-green);
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+/* ── Totals row ── */
+.totals-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 20px;
+  background: var(--color-surface);
+  border: 0.5px solid var(--color-border);
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.total-item {
+  flex: 1;
+  min-width: 150px;
+}
+
+.total-label {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 600;
+}
+
+.total-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.total-value.accent {
+  color: var(--color-accent-green);
+}
+
+.total-sub {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 0;
+  border-bottom: 1.5px solid var(--color-border);
+}
+
+.tab-btn {
+  padding: 10px 24px;
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-bottom: 2.5px solid transparent;
+  margin-bottom: -1.5px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.tab-btn.active {
+  color: var(--color-accent-green);
+  border-bottom-color: var(--color-accent-green);
+}
+
+.tab-btn:hover {
+  color: var(--color-text-primary);
+}
+
+.tab-panel {
+  display: none;
+  padding: 20px 0;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+/* ── Tab content ── */
+.income-breakdown {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.income-item {
+  background: var(--color-surface);
+  border: 0.5px solid var(--color-border);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.income-item-label {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 2px;
+}
+
+.income-item-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.income-item-note {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.tab-note {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  margin-top: 8px;
+  line-height: 1.6;
+}
+
+/* Compare tab */
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.compare-card {
+  background: var(--color-surface);
+  border: 0.5px solid var(--color-border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.compare-card.featured {
+  border: 2px solid var(--color-accent-green);
+}
+
+.compare-card h4 {
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.compare-card .compare-total {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.compare-card .compare-detail {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 2px;
+}
+
+/* ── Disclaimers ── */
+.disclaimers {
+  margin-top: 40px;
+  padding: 20px;
+  background: var(--color-surface);
+  border: 0.5px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.disclaimers h3 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-secondary);
+}
+
+.disclaimers ul {
+  list-style: none;
+  padding: 0;
+}
+
+.disclaimers li {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  padding-left: 16px;
+  position: relative;
+}
+
+.disclaimers li::before {
+  content: '\2022';
+  position: absolute;
+  left: 0;
+  color: var(--color-border);
+}
+
+.disclaimers .privacy-note {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 0.5px solid var(--color-border);
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+@media (max-width: 540px) {
+  body { padding: 14px; }
+  .controls { flex-direction: column; }
+  .compare-grid { grid-template-columns: 1fr; }
+  .pots-grid, .summary-grid, .income-breakdown { grid-template-columns: 1fr; }
+  .add-pot-buttons { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<h1>Retirement Planner</h1>
+
+<!-- 1. Controls -->
+<div class="controls">
+  <div class="control-group">
+    <label for="currentAge">Current age</label>
+    <input type="number" id="currentAge" value="37" min="18" max="64" class="salary-display" style="width:60px">
+  </div>
+  <div class="control-group">
+    <label for="retireAge">Retire at age <span class="control-value" id="retireAgeValue">65</span></label>
+    <input type="range" id="retireAge" min="57" max="70" value="65">
+  </div>
+  <div class="control-group">
+    <label for="annualRate">Annual rate <span class="control-value" id="annualRateValue">7%</span></label>
+    <input type="range" id="annualRate" min="3" max="12" value="7">
+  </div>
+  <div class="control-group">
+    <label for="salary">Annual salary</label>
+    <input type="text" id="salary" value="£35,000" data-raw="35000" class="salary-display">
+  </div>
+</div>
+
+<!-- 2. Pot cards -->
+<div class="pots-grid" id="potsGrid"></div>
+
+<!-- 3. Add pot buttons -->
+<div class="add-pot-buttons" id="addPotButtons">
+  <button class="add-pot-btn" id="addPensionBtn" type="button">+ Add pension</button>
+  <button class="add-pot-btn" id="addIsaBtn" type="button">+ Add ISA</button>
+  <button class="add-pot-btn" id="addCashIsaBtn" type="button">+ Add Cash ISA</button>
+  <button class="add-pot-btn" id="addPremiumBondsBtn" type="button">+ Add Premium Bonds</button>
+</div>
+
+<div class="add-pot-form" id="addPotForm">
+  <h3 id="addPotFormTitle">Add a new pension</h3>
+  <div class="form-field">
+    <label for="newPotName">Name</label>
+    <input type="text" id="newPotName" placeholder="e.g. Workplace pension">
+  </div>
+  <div class="form-field">
+    <label for="newPotValue">Current value (£)</label>
+    <input type="number" id="newPotValue" min="0" placeholder="0">
+  </div>
+  <input type="hidden" id="newPotType" value="pension">
+  <div class="form-actions">
+    <button class="btn-primary" id="submitPot" type="button">Add pot</button>
+    <button class="btn-secondary" id="cancelPot" type="button">Cancel</button>
+  </div>
+</div>
+
+<!-- 4. Chart -->
+<div class="chart-container">
+  <canvas id="growthChart"></canvas>
+</div>
+
+<!-- 5. Legend -->
+<div class="chart-legend" id="chartLegend"></div>
+
+<!-- 6. Pot summary cards -->
+<div class="summary-grid" id="summaryGrid"></div>
+
+<!-- 7. Totals row -->
+<div class="totals-row" id="totalsRow"></div>
+
+<!-- 8. Tabs -->
+<div class="tabs">
+  <button class="tab-btn active" data-tab="drawdown">Drawdown</button>
+  <button class="tab-btn" data-tab="annuity">Annuity</button>
+  <button class="tab-btn" data-tab="compare">Compare</button>
+</div>
+
+<div class="tab-panel active" id="tab-drawdown"></div>
+<div class="tab-panel" id="tab-annuity"></div>
+<div class="tab-panel" id="tab-compare"></div>
+
+<!-- 9. Disclaimers -->
+<div class="disclaimers">
+  <h3>Assumptions &amp; Disclaimers</h3>
+  <ul>
+    <li>Growth rate assumes a broad global equity tracker fund (e.g. FTSE Global All Cap or MSCI World). Actual returns will vary and are not guaranteed.</li>
+    <li>Inflation is modelled at a fixed 2.5% per year. Real inflation may be higher or lower.</li>
+    <li>State pension is shown at the current full rate of £11,500/yr. Your entitlement depends on your National Insurance record and may change.</li>
+    <li>Drawdown uses a fixed 4% withdrawal rate (the "4% rule"). This is a common guideline, not a guarantee of sustainable income.</li>
+    <li>Annuity rates shown are illustrative (5% pension, 4% ISA, 3% Cash ISA). Actual annuity quotes depend on age, health, and market conditions at the time of purchase.</li>
+    <li>Premium Bonds use the NS&amp;I prize fund rate as an expected return. Actual returns are probabilistic and may differ significantly, especially for smaller holdings.</li>
+    <li>Tax implications (income tax on pension withdrawals, tax-free ISA status) are not modelled. Seek professional advice for tax planning.</li>
+    <li>This tool is for illustration only and does not constitute financial advice. Consider consulting a qualified financial adviser.</li>
+  </ul>
+  <p class="privacy-note">Your data stays private. All calculations run in your browser. Nothing is sent to any server. Your settings are saved in your browser's local storage only.</p>
+</div>
+
+<script>
+const PALETTE = ['#7F77DD','#1D9E75','#378ADD','#D85A30','#BA7517','#D4537E','#639922'];
+const STATE_PENSION = 11500;
+const DRAWDOWN_RATE = 0.04;
+const INFLATION_RATE = 0.025;
+const POT_TYPES = ['pension', 'isa', 'cash-isa', 'premium-bonds'];
+
+// ── localStorage ──
+function saveState() {
+  const state = {
+    pots,
+    currentAge: currentAgeInput.value,
+    retireAge: retireAgeInput.value,
+    annualRate: annualRateInput.value,
+    salary: salaryInput.dataset.raw,
+  };
+  try { localStorage.setItem('retirementPlanner', JSON.stringify(state)); } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('retirementPlanner'));
+    if (!saved || !Array.isArray(saved.pots)) return null;
+    return saved;
+  } catch(e) { return null; }
+}
+
+let pots = [
+  { name: 'Pension 1', type: 'pension', value: 30000, employeeContrib: 3, employerContrib: 3, contribMode: 'percent' },
+];
+
+let chart = null;
+
+// ── DOM refs ──
+const currentAgeInput = document.getElementById('currentAge');
+const retireAgeInput = document.getElementById('retireAge');
+const annualRateInput = document.getElementById('annualRate');
+const retireAgeValue = document.getElementById('retireAgeValue');
+const annualRateValue = document.getElementById('annualRateValue');
+const potsGrid = document.getElementById('potsGrid');
+const addPotForm = document.getElementById('addPotForm');
+const submitPotBtn = document.getElementById('submitPot');
+const cancelPotBtn = document.getElementById('cancelPot');
+const chartLegend = document.getElementById('chartLegend');
+const summaryGrid = document.getElementById('summaryGrid');
+const totalsRow = document.getElementById('totalsRow');
+const salaryInput = document.getElementById('salary');
+
+// ── Helpers ──
+function fmt(n) {
+  return '£' + Math.round(n).toLocaleString('en-GB');
+}
+
+function escapeHTML(str) {
+  const el = document.createElement('span');
+  el.textContent = str;
+  return el.innerHTML;
+}
+
+function getMonthlyContrib(pot) {
+  const salary = parseFloat(salaryInput.dataset.raw) || 0;
+  if (pot.contribMode === 'percent') {
+    return ((pot.employeeContrib + pot.employerContrib) / 100) * salary / 12;
+  }
+  return pot.employeeContrib + pot.employerContrib;
+}
+
+function getPotRate(pot) {
+  if (pot.type === 'cash-isa' || pot.type === 'premium-bonds') return (pot.customRate || 0) / 100;
+  return parseInt(annualRateInput.value) / 100;
+}
+
+function getInputs() {
+  return {
+    currentAge: parseInt(currentAgeInput.value) || 37,
+    retireAge: parseInt(retireAgeInput.value),
+    rate: parseInt(annualRateInput.value) / 100,
+  };
+}
+
+function projectPot(pot, years, rate) {
+  const potRate = (pot.type === 'cash-isa' || pot.type === 'premium-bonds') ? getPotRate(pot) : rate;
+  const monthlyRate = potRate / 12;
+  const months = years * 12;
+  const monthly = getMonthlyContrib(pot);
+  let val = pot.value;
+  for (let m = 0; m < months; m++) {
+    val = val * (1 + monthlyRate) + monthly;
+  }
+  return val;
+}
+
+function projectPotByYear(pot, years, rate) {
+  const potRate = (pot.type === 'cash-isa' || pot.type === 'premium-bonds') ? getPotRate(pot) : rate;
+  const monthlyRate = potRate / 12;
+  const monthly = getMonthlyContrib(pot);
+  const values = [pot.value];
+  let val = pot.value;
+  for (let y = 0; y < years; y++) {
+    for (let m = 0; m < 12; m++) {
+      val = val * (1 + monthlyRate) + monthly;
+    }
+    values.push(val);
+  }
+  return values;
+}
+
+function potTypeLabel(type) {
+  switch(type) {
+    case 'pension': return 'Pension';
+    case 'isa': return 'ISA';
+    case 'cash-isa': return 'Cash ISA';
+    case 'premium-bonds': return 'Premium Bonds';
+    default: return type;
+  }
+}
+
+function potBadgeClass(type) {
+  switch(type) {
+    case 'isa': return 'isa';
+    case 'cash-isa': return 'cash-isa';
+    case 'premium-bonds': return 'premium-bonds';
+    default: return '';
+  }
+}
+
+function hasCustomRate(type) {
+  return type === 'cash-isa' || type === 'premium-bonds';
+}
+
+function isTaxFree(type) {
+  return type === 'isa' || type === 'cash-isa' || type === 'premium-bonds';
+}
+
+// ── Render pot cards ──
+function renderPots() {
+  potsGrid.innerHTML = '';
+  pots.forEach((pot, i) => {
+    const card = document.createElement('div');
+    card.className = 'pot-card';
+    const color = PALETTE[i % PALETTE.length];
+    const isPension = pot.type === 'pension';
+    const isPct = pot.contribMode === 'percent';
+    const unit = isPct ? '%' : '£';
+    const safeName = escapeHTML(pot.name);
+
+    // Build contribution section based on pot type
+    let contribHTML = '';
+    if (isPension) {
+      const salary = parseFloat(salaryInput.dataset.raw) || 0;
+      const monthlyEquiv = isPct ? fmt(((pot.employeeContrib + pot.employerContrib) / 100) * salary / 12) + '/mo' : '';
+      contribHTML = `
+        <div class="contrib-mode-toggle" data-index="${i}">
+          <button class="contrib-mode-btn ${!isPct ? 'active' : ''}" data-mode="pounds">£</button>
+          <button class="contrib-mode-btn ${isPct ? 'active' : ''}" data-mode="percent">% salary</button>
+        </div>
+        <div class="pot-contrib-row">
+          <div class="pot-contrib-field">
+            <label>Your (${unit}${isPct ? '' : '/mo'})</label>
+            <input type="number" min="0" step="${isPct ? '0.5' : '1'}" value="${pot.employeeContrib}" data-index="${i}" class="employee-contrib-input">
+          </div>
+          <div class="pot-contrib-field">
+            <label>Employer (${unit}${isPct ? '' : '/mo'})</label>
+            <input type="number" min="0" step="${isPct ? '0.5' : '1'}" value="${pot.employerContrib}" data-index="${i}" class="employer-contrib-input">
+          </div>
+        </div>
+        ${isPct && monthlyEquiv ? `<div class="contrib-equiv">= ${monthlyEquiv}</div>` : ''}
+      `;
+    } else {
+      contribHTML = `
+        <div class="pot-contrib-row">
+          <div class="pot-contrib-field">
+            <label>Monthly contribution (£/mo)</label>
+            <input type="number" min="0" step="1" value="${pot.employeeContrib}" data-index="${i}" class="employee-contrib-input">
+          </div>
+        </div>
+      `;
+    }
+
+    // Custom rate field for cash ISA and premium bonds
+    let rateHTML = '';
+    if (hasCustomRate(pot.type)) {
+      const rateLabel = pot.type === 'premium-bonds' ? 'Expected prize rate (%)' : 'Interest rate (%)';
+      rateHTML = `
+        <div class="pot-rate-group">
+          <label>${rateLabel}</label>
+          <input type="number" min="0" max="20" step="0.1" value="${pot.customRate || 0}" data-index="${i}" class="custom-rate-input">
+        </div>
+      `;
+    }
+
+    card.innerHTML = `
+      <div class="pot-card-header">
+        <input class="pot-name" type="text" value="${safeName}" data-index="${i}">
+        <button class="pot-type-badge ${potBadgeClass(pot.type)}" data-index="${i}" title="Click to change type">${potTypeLabel(pot.type)}</button>
+      </div>
+      <div class="pot-value-group">
+        <label class="pot-value-label">Current value</label>
+        <input type="text" value="${fmt(pot.value)}" data-index="${i}" data-raw="${pot.value}" class="pot-value-input" style="color:${color}">
+      </div>
+      ${rateHTML}
+      ${contribHTML}
+      ${pots.length > 1 ? `<button class="pot-remove" data-index="${i}" title="Remove pot">&times;</button>` : ''}
+    `;
+    potsGrid.appendChild(card);
+  });
+
+  // Name editing
+  potsGrid.querySelectorAll('.pot-name').forEach(input => {
+    input.addEventListener('change', e => {
+      pots[e.target.dataset.index].name = e.target.value;
+      updateAll();
+    });
+  });
+
+  // Value editing — show formatted on blur, raw on focus
+  potsGrid.querySelectorAll('.pot-value-input').forEach(input => {
+    input.addEventListener('focus', e => {
+      e.target.value = e.target.dataset.raw;
+    });
+    input.addEventListener('blur', e => {
+      const val = parseFloat(e.target.value) || 0;
+      pots[e.target.dataset.index].value = val;
+      e.target.dataset.raw = val;
+      e.target.value = fmt(val);
+    });
+    input.addEventListener('input', e => {
+      const val = parseFloat(e.target.value) || 0;
+      pots[e.target.dataset.index].value = val;
+      e.target.dataset.raw = val;
+      updateWithoutRerender();
+    });
+  });
+
+  // Contribution editing
+  potsGrid.querySelectorAll('.employee-contrib-input').forEach(input => {
+    input.addEventListener('input', e => {
+      pots[e.target.dataset.index].employeeContrib = parseFloat(e.target.value) || 0;
+      updateWithoutRerender();
+    });
+  });
+
+  potsGrid.querySelectorAll('.employer-contrib-input').forEach(input => {
+    input.addEventListener('input', e => {
+      pots[e.target.dataset.index].employerContrib = parseFloat(e.target.value) || 0;
+      updateWithoutRerender();
+    });
+  });
+
+  // Custom rate editing (Cash ISA / Premium Bonds)
+  potsGrid.querySelectorAll('.custom-rate-input').forEach(input => {
+    input.addEventListener('input', e => {
+      pots[e.target.dataset.index].customRate = parseFloat(e.target.value) || 0;
+      updateWithoutRerender();
+    });
+  });
+
+  // Contribution mode toggle (pension only)
+  potsGrid.querySelectorAll('.contrib-mode-toggle').forEach(toggle => {
+    toggle.querySelectorAll('.contrib-mode-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const idx = toggle.dataset.index;
+        pots[idx].contribMode = e.target.dataset.mode;
+        pots[idx].employeeContrib = 0;
+        pots[idx].employerContrib = 0;
+        updateAll();
+      });
+    });
+  });
+
+  // Toggle type: pension -> isa -> cash-isa -> premium-bonds -> pension
+  potsGrid.querySelectorAll('.pot-type-badge').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const idx = e.target.dataset.index;
+      const currentIdx = POT_TYPES.indexOf(pots[idx].type);
+      const nextType = POT_TYPES[(currentIdx + 1) % POT_TYPES.length];
+      pots[idx].type = nextType;
+      if (nextType !== 'pension') {
+        pots[idx].contribMode = 'pounds';
+        pots[idx].employerContrib = 0;
+      }
+      if (hasCustomRate(nextType) && !pots[idx].customRate) {
+        pots[idx].customRate = nextType === 'premium-bonds' ? 4.4 : 4;
+      }
+      updateAll();
+    });
+  });
+
+  // Remove
+  potsGrid.querySelectorAll('.pot-remove').forEach(btn => {
+    btn.addEventListener('click', e => {
+      pots.splice(parseInt(e.target.dataset.index), 1);
+      updateAll();
+    });
+  });
+}
+
+// ── Add pot form ──
+const addPotButtons = document.getElementById('addPotButtons');
+const addPensionBtn = document.getElementById('addPensionBtn');
+const addIsaBtn = document.getElementById('addIsaBtn');
+const addCashIsaBtn = document.getElementById('addCashIsaBtn');
+const addPremiumBondsBtn = document.getElementById('addPremiumBondsBtn');
+
+const formConfig = {
+  pension: { title: 'Add a new pension', placeholder: 'e.g. Workplace pension' },
+  isa: { title: 'Add a new ISA', placeholder: 'e.g. Vanguard S&S ISA' },
+  'cash-isa': { title: 'Add a new Cash ISA', placeholder: 'e.g. Marcus Cash ISA' },
+  'premium-bonds': { title: 'Add Premium Bonds', placeholder: 'e.g. NS&I Premium Bonds' },
+};
+
+function openAddForm(type) {
+  addPotForm.classList.add('open');
+  addPotButtons.style.display = 'none';
+  document.getElementById('newPotName').value = '';
+  document.getElementById('newPotValue').value = '';
+  document.getElementById('newPotType').value = type;
+  const cfg = formConfig[type] || { title: 'Add a new pot', placeholder: '' };
+  document.getElementById('addPotFormTitle').textContent = cfg.title;
+  document.getElementById('newPotName').placeholder = cfg.placeholder;
+  document.getElementById('newPotName').focus();
+}
+
+addPensionBtn.addEventListener('click', () => openAddForm('pension'));
+addIsaBtn.addEventListener('click', () => openAddForm('isa'));
+addCashIsaBtn.addEventListener('click', () => openAddForm('cash-isa'));
+addPremiumBondsBtn.addEventListener('click', () => openAddForm('premium-bonds'));
+
+cancelPotBtn.addEventListener('click', closeAddForm);
+
+submitPotBtn.addEventListener('click', () => {
+  const name = document.getElementById('newPotName').value.trim();
+  const value = parseFloat(document.getElementById('newPotValue').value) || 0;
+  const type = document.getElementById('newPotType').value;
+  if (!name) {
+    document.getElementById('newPotName').focus();
+    return;
+  }
+  const newPot = { name, type, value, employeeContrib: 0, employerContrib: 0, contribMode: 'pounds' };
+  if (type === 'cash-isa') newPot.customRate = 4;
+  if (type === 'premium-bonds') newPot.customRate = 4.4;
+  pots.push(newPot);
+  closeAddForm();
+  updateAll();
+});
+
+function closeAddForm() {
+  addPotForm.classList.remove('open');
+  addPotButtons.style.display = '';
+}
+
+// ── Chart ──
+function updateChart() {
+  if (typeof Chart === 'undefined') return;
+  const { currentAge, retireAge, rate } = getInputs();
+  const years = Math.max(retireAge - currentAge, 1);
+  const labels = [];
+  for (let y = 0; y <= years; y++) labels.push(currentAge + y);
+
+  const allYearData = pots.map(pot => projectPotByYear(pot, years, rate));
+
+  const datasets = allYearData.map((data, i) => {
+    const color = PALETTE[i % PALETTE.length];
+    return {
+      label: pots[i].name,
+      data,
+      backgroundColor: color + '33',
+      borderColor: color,
+      borderWidth: 2,
+      fill: 'origin',
+      tension: 0.3,
+      pointRadius: 0,
+    };
+  });
+
+  // Add total line if more than one pot
+  if (pots.length > 1) {
+    const totalData = allYearData[0].map((_, yi) => allYearData.reduce((sum, d) => sum + d[yi], 0));
+    datasets.push({
+      label: 'Total',
+      data: totalData,
+      backgroundColor: 'transparent',
+      borderColor: getComputedStyle(document.body).getPropertyValue('--color-text-primary').trim(),
+      borderWidth: 3,
+      borderDash: [6, 3],
+      fill: false,
+      tension: 0.3,
+      pointRadius: 0,
+    });
+  }
+
+  if (chart) {
+    chart.data.labels = labels;
+    chart.data.datasets = datasets;
+    chart.update();
+  } else {
+    const ctx = document.getElementById('growthChart').getContext('2d');
+    chart = new Chart(ctx, {
+      type: 'line',
+      data: { labels, datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => ctx.dataset.label + ': ' + fmt(ctx.parsed.y),
+            }
+          }
+        },
+        scales: {
+          x: {
+            title: { display: true, text: 'Age', color: getComputedStyle(document.body).getPropertyValue('--color-text-secondary').trim() },
+            ticks: { color: getComputedStyle(document.body).getPropertyValue('--color-text-secondary').trim() },
+            grid: { color: getComputedStyle(document.body).getPropertyValue('--color-border').trim() },
+          },
+          y: {
+            stacked: false,
+            title: { display: true, text: 'Value (£)', color: getComputedStyle(document.body).getPropertyValue('--color-text-secondary').trim() },
+            ticks: {
+              color: getComputedStyle(document.body).getPropertyValue('--color-text-secondary').trim(),
+              callback: v => fmt(v),
+            },
+            grid: { color: getComputedStyle(document.body).getPropertyValue('--color-border').trim() },
+          }
+        }
+      }
+    });
+  }
+}
+
+// ── Legend ──
+function updateLegend() {
+  let html = pots.map((pot, i) => `
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:${PALETTE[i % PALETTE.length]}"></div>
+      ${escapeHTML(pot.name)}
+    </div>
+  `).join('');
+  if (pots.length > 1) {
+    html += `<div class="legend-item">
+      <div class="legend-swatch" style="background:${getComputedStyle(document.body).getPropertyValue('--color-text-primary').trim()};opacity:0.6"></div>
+      Total
+    </div>`;
+  }
+  chartLegend.innerHTML = html;
+}
+
+// ── Summary cards ──
+function updateSummary() {
+  const { currentAge, retireAge, rate } = getInputs();
+  const years = Math.max(retireAge - currentAge, 1);
+
+  summaryGrid.innerHTML = pots.map((pot, i) => {
+    const projected = projectPot(pot, years, rate);
+    const drawdown = projected * DRAWDOWN_RATE;
+    const color = PALETTE[i % PALETTE.length];
+    return `
+      <div class="summary-card">
+        <div class="summary-card-header">
+          <div class="summary-card-swatch" style="background:${color}"></div>
+          <div class="summary-card-name">${escapeHTML(pot.name)}</div>
+        </div>
+        <div class="summary-card-projected">${fmt(projected)}</div>
+        <div class="summary-card-start">Starting: ${fmt(pot.value)}</div>
+        <div class="summary-card-drawdown">4% drawdown: ${fmt(drawdown)}/yr</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── Totals ──
+function updateTotals() {
+  const { currentAge, retireAge, rate } = getInputs();
+  const years = Math.max(retireAge - currentAge, 1);
+
+  let totalProjected = 0;
+  let totalMonthlyContrib = 0;
+  pots.forEach(pot => {
+    totalProjected += projectPot(pot, years, rate);
+    totalMonthlyContrib += getMonthlyContrib(pot);
+  });
+
+  const annualDrawdown = totalProjected * DRAWDOWN_RATE;
+  const annualIncome = annualDrawdown + STATE_PENSION;
+  const deflator = Math.pow(1 + INFLATION_RATE, years);
+  const todaysMoney = annualIncome / deflator;
+
+  totalsRow.innerHTML = `
+    <div class="total-item">
+      <div class="total-label">Total pot</div>
+      <div class="total-value">${fmt(totalProjected)}</div>
+    </div>
+    <div class="total-item">
+      <div class="total-label">Total monthly contributions</div>
+      <div class="total-value">${fmt(totalMonthlyContrib)}/mo</div>
+    </div>
+    <div class="total-item">
+      <div class="total-label">Annual income (4% + state pension)</div>
+      <div class="total-value accent">${fmt(annualIncome)}</div>
+      <div class="total-sub">Drawdown ${fmt(annualDrawdown)} + State pension ${fmt(STATE_PENSION)}</div>
+    </div>
+    <div class="total-item">
+      <div class="total-label">In today's money (2.5% inflation)</div>
+      <div class="total-value">${fmt(todaysMoney)}</div>
+    </div>
+  `;
+}
+
+// ── Tabs ──
+function getAnnuityRate(type) {
+  if (type === 'pension') return 0.05;
+  if (type === 'cash-isa' || type === 'premium-bonds') return 0.03;
+  return 0.04;
+}
+
+function getAnnuityLabel(type) {
+  const pct = Math.round(getAnnuityRate(type) * 100);
+  return pct + '%';
+}
+
+function updateTabs() {
+  const { currentAge, retireAge, rate } = getInputs();
+  const years = Math.max(retireAge - currentAge, 1);
+
+  const projected = pots.map(pot => projectPot(pot, years, rate));
+  const totalProjected = projected.reduce((a, b) => a + b, 0);
+  const deflator = Math.pow(1 + INFLATION_RATE, years);
+
+  // ── Drawdown tab ──
+  const drawdownItems = pots.map((pot, i) => {
+    const val = projected[i];
+    const income = val * DRAWDOWN_RATE;
+    const note = isTaxFree(pot.type) ? 'Tax-free' : '';
+    return `
+      <div class="income-item">
+        <div class="income-item-label">${escapeHTML(pot.name)}</div>
+        <div class="income-item-value">${fmt(income)}/yr</div>
+        ${note ? `<div class="income-item-note">${note}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  const drawdownTotal = totalProjected * DRAWDOWN_RATE;
+  const drawdownPlusState = drawdownTotal + STATE_PENSION;
+
+  document.getElementById('tab-drawdown').innerHTML = `
+    <div class="income-breakdown">${drawdownItems}
+      <div class="income-item">
+        <div class="income-item-label">State pension</div>
+        <div class="income-item-value">${fmt(STATE_PENSION)}/yr</div>
+      </div>
+    </div>
+    <div class="totals-row">
+      <div class="total-item">
+        <div class="total-label">Total annual income (drawdown)</div>
+        <div class="total-value accent">${fmt(drawdownPlusState)}</div>
+      </div>
+      <div class="total-item">
+        <div class="total-label">In today's money</div>
+        <div class="total-value">${fmt(drawdownPlusState / deflator)}</div>
+      </div>
+    </div>
+    <p class="tab-note">Drawdown withdraws 4% of your pot each year, leaving the remainder invested. Income varies with market performance but preserves capital.</p>
+  `;
+
+  // ── Annuity tab ──
+  let annuityTotal = STATE_PENSION;
+  const annuityItems = pots.map((pot, i) => {
+    const val = projected[i];
+    const annuityRate = getAnnuityRate(pot.type);
+    const income = val * annuityRate;
+    annuityTotal += income;
+    return `
+      <div class="income-item">
+        <div class="income-item-label">${escapeHTML(pot.name)} (${getAnnuityLabel(pot.type)})</div>
+        <div class="income-item-value">${fmt(income)}/yr</div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('tab-annuity').innerHTML = `
+    <div class="income-breakdown">${annuityItems}
+      <div class="income-item">
+        <div class="income-item-label">State pension</div>
+        <div class="income-item-value">${fmt(STATE_PENSION)}/yr</div>
+      </div>
+    </div>
+    <div class="totals-row">
+      <div class="total-item">
+        <div class="total-label">Total annual income (annuity)</div>
+        <div class="total-value accent">${fmt(annuityTotal)}</div>
+      </div>
+      <div class="total-item">
+        <div class="total-label">In today's money</div>
+        <div class="total-value">${fmt(annuityTotal / deflator)}</div>
+      </div>
+    </div>
+    <p class="tab-note">An annuity provides guaranteed level income for life by exchanging your pot for an insurance contract. Note: level income erodes in real terms with inflation over time.</p>
+  `;
+
+  // ── Compare tab ──
+  let annuityCompTotal = STATE_PENSION;
+  pots.forEach((pot, i) => {
+    annuityCompTotal += projected[i] * getAnnuityRate(pot.type);
+  });
+
+  const drawdownBetter = drawdownPlusState < annuityCompTotal;
+  const diff = Math.abs(drawdownPlusState - annuityCompTotal);
+  const note = drawdownPlusState >= annuityCompTotal
+    ? `Drawdown gives you ${fmt(diff)} more per year, with flexibility to adjust withdrawals and pass on remaining capital.`
+    : `Annuity gives you ${fmt(diff)} more per year in guaranteed income, but you lose access to your capital.`;
+
+  document.getElementById('tab-compare').innerHTML = `
+    <div class="compare-grid">
+      <div class="compare-card ${!drawdownBetter ? 'featured' : ''}">
+        <h4>Drawdown (4%)</h4>
+        <div class="compare-total">${fmt(drawdownPlusState)}/yr</div>
+        <div class="compare-detail">Pot drawdown: ${fmt(drawdownTotal)}</div>
+        <div class="compare-detail">State pension: ${fmt(STATE_PENSION)}</div>
+        <div class="compare-detail">In today's money: ${fmt(drawdownPlusState / deflator)}</div>
+      </div>
+      <div class="compare-card ${drawdownBetter ? 'featured' : ''}">
+        <h4>Annuity</h4>
+        <div class="compare-total">${fmt(annuityCompTotal)}/yr</div>
+        <div class="compare-detail">Pension @ 5%, ISA @ 4%, Cash/Bonds @ 3%</div>
+        <div class="compare-detail">State pension: ${fmt(STATE_PENSION)}</div>
+        <div class="compare-detail">In today's money: ${fmt(annuityCompTotal / deflator)}</div>
+      </div>
+    </div>
+    <p class="tab-note">${note}</p>
+  `;
+}
+
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ── Controls ──
+retireAgeInput.addEventListener('input', () => {
+  retireAgeValue.textContent = retireAgeInput.value;
+  updateAll();
+});
+
+annualRateInput.addEventListener('input', () => {
+  annualRateValue.textContent = annualRateInput.value + '%';
+  updateAll();
+});
+
+currentAgeInput.addEventListener('input', () => updateAll());
+
+salaryInput.addEventListener('focus', e => {
+  e.target.value = e.target.dataset.raw;
+});
+salaryInput.addEventListener('blur', e => {
+  const val = parseFloat(e.target.value) || 0;
+  e.target.dataset.raw = val;
+  e.target.value = fmt(val);
+  updateAll();
+});
+salaryInput.addEventListener('input', e => {
+  const val = parseFloat(e.target.value) || 0;
+  e.target.dataset.raw = val;
+  updateAll();
+});
+
+// ── Update helpers ──
+function updateWithoutRerender() {
+  updateChart();
+  updateLegend();
+  updateSummary();
+  updateTotals();
+  updateTabs();
+  saveState();
+}
+
+function updateAll() {
+  renderPots();
+  updateChart();
+  updateLegend();
+  updateSummary();
+  updateTotals();
+  updateTabs();
+  saveState();
+}
+
+// ── Init ──
+const saved = loadState();
+if (saved) {
+  pots = saved.pots;
+  currentAgeInput.value = saved.currentAge;
+  retireAgeInput.value = saved.retireAge;
+  retireAgeValue.textContent = saved.retireAge;
+  annualRateInput.value = saved.annualRate;
+  annualRateValue.textContent = saved.annualRate + '%';
+  salaryInput.dataset.raw = saved.salary;
+  salaryInput.value = fmt(parseFloat(saved.salary));
+}
+updateAll();
+</script>
+
+</body>
+</html>
