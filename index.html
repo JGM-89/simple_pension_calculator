@@ -4,18 +4,51 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:;">
-<title>Simple Pension Calculator — Free UK Retirement Planner</title>
-<meta name="description" content="Free UK retirement planner. Calculate your pension, ISA, LISA, and investment pot growth. Compare drawdown vs annuity income with tax estimates. Plan for couples. No sign-up, no data sent anywhere — runs entirely in your browser.">
-<meta name="keywords" content="pension calculator, retirement planner, UK pension, drawdown calculator, annuity calculator, ISA calculator, LISA calculator, retirement income, pension tax, couple retirement planning">
+<title>Simple Pension Calculator — Free Private UK Retirement Planner</title>
+<meta name="description" content="Free UK pension calculator using 2024/25 tax bands. Model pensions, ISAs, LISAs, GIAs, and defined benefit schemes. Compare drawdown vs annuity income with income tax and CGT estimates. Plan for couples. 100% private — no sign-up, no data leaves your browser.">
+<meta name="keywords" content="pension calculator UK, retirement planner UK, drawdown calculator, annuity calculator, ISA calculator, LISA calculator, UK retirement income, pension tax calculator, couple retirement planning, private pension calculator, defined benefit pension, 4% rule calculator">
 <link rel="canonical" href="https://simplepensioncalculator.co.uk/">
-<meta property="og:title" content="Simple Pension Calculator — Free UK Retirement Planner">
-<meta property="og:description" content="Free, private UK retirement planner. Model pensions, ISAs, LISAs, and more. Compare drawdown vs annuity with tax estimates. No sign-up required.">
+<meta property="og:title" content="Simple Pension Calculator — Free Private UK Retirement Planner">
+<meta property="og:description" content="Free UK pension calculator with 2024/25 tax bands. Model pensions, ISAs, LISAs, GIAs, and DB schemes. 100% private — nothing leaves your browser.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://simplepensioncalculator.co.uk/">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Simple Pension Calculator — Free UK Retirement Planner">
-<meta name="twitter:description" content="Free, private UK retirement planner. Model pensions, ISAs, LISAs, and more. Compare drawdown vs annuity with tax estimates.">
+<meta name="twitter:title" content="Simple Pension Calculator — Free Private UK Retirement Planner">
+<meta name="twitter:description" content="Free UK pension calculator with 2024/25 tax bands. Model pensions, ISAs, LISAs, GIAs, and DB schemes. 100% private — nothing leaves your browser.">
 <meta name="google-site-verification" content="zKzE9hf6Wtc4gytMNq6NLCd0ZLT0SvYxWS74jShWFf8" />
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Simple Pension Calculator",
+  "url": "https://simplepensioncalculator.co.uk/",
+  "description": "Free UK retirement planner. Calculate pension, ISA, LISA, and investment pot growth. Compare drawdown vs annuity income with tax estimates. Plan for couples.",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "GBP"
+  },
+  "featureList": [
+    "8 pot types: Pension, S&S ISA, GIA, Cash ISA, S&S LISA, Cash LISA, Premium Bonds, Defined Benefit",
+    "Couple mode with separate ages, salaries, and pot ownership",
+    "Income tax estimation using 2024/25 bands with personal allowance taper",
+    "Capital Gains Tax modelling on GIA withdrawals",
+    "LISA 25% government bonus modelling",
+    "Drawdown (4% rule) vs annuity income comparison",
+    "Inflation-adjusted figures (today's money toggle)",
+    "PLSA Retirement Living Standards benchmarks",
+    "PDF report export",
+    "100% client-side — no data sent to any server"
+  ],
+  "browserRequirements": "Requires JavaScript",
+  "softwareHelp": {
+    "@type": "CreativeWork",
+    "url": "https://simplepensioncalculator.co.uk/"
+  }
+}
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha384-bs/nf9FbdNouRbMiFcrcZfLXYPKiPaGVGplVbv7dLGECccEXDW+S3zjqSKR5ZEaD" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" crossorigin="anonymous"></script>
@@ -1384,7 +1417,7 @@ h1 {
 <body>
 
 <div class="header-row">
-  <h1>Retirement Planner</h1>
+  <h1>Simple Pension Calculator</h1>
   <button class="reset-btn" id="resetBtn" type="button">Reset to defaults</button>
 </div>
 
@@ -3264,7 +3297,7 @@ function generatePDF() {
   function addFooter(doc, pageNum, totalPages) {
     doc.setFontSize(8);
     doc.setTextColor(150);
-    doc.text('Retirement Planner Report — for illustration only, not financial advice', margin, pageH - 8);
+    doc.text('simplepensioncalculator.co.uk — for illustration only, not financial advice', margin, pageH - 8);
     doc.text('Page ' + pageNum + ' of ' + totalPages, pageW - margin, pageH - 8, { align: 'right' });
   }
 
@@ -3305,7 +3338,7 @@ function generatePDF() {
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(120);
-  doc.text('Generated ' + today + '  |  All projections are estimates for illustration only', margin, y);
+  doc.text('Generated ' + today + '  |  simplepensioncalculator.co.uk  |  All projections are estimates for illustration only', margin, y);
   y += 12;
 
   // Key assumptions box
@@ -3825,12 +3858,12 @@ function generatePDF() {
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(29, 158, 117);
-  doc.text('Generated by Retirement Planner — a free, open-source, privacy-first tool.', margin, y);
+  doc.text('Generated by Simple Pension Calculator — simplepensioncalculator.co.uk', margin, y);
   y += 4;
   doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(120);
-  doc.text('All calculations run in your browser. No data is sent to any server.', margin, y);
+  doc.text('Free, private, and open-source. All calculations run in your browser — no data is sent to any server.', margin, y);
 
   const totalPages = doc.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
