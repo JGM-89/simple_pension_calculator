@@ -1758,7 +1758,7 @@ function realLabel() {
 function escapeHTML(str) {
   const el = document.createElement('span');
   el.textContent = str;
-  return el.innerHTML;
+  return el.innerHTML.replace(/"/g, '&quot;');
 }
 
 function isLisa(type) {
@@ -1799,6 +1799,15 @@ function getInputs() {
   };
 }
 
+function getYearsForPot(pot, years) {
+  if (pot.owner === 'partner') {
+    const partnerAge = parseInt(document.getElementById('partnerAge').value) || 18;
+    const partnerRetireAge = parseInt(document.getElementById('partnerRetireAge').value) || 67;
+    return Math.max(partnerRetireAge - partnerAge, 1);
+  }
+  return years;
+}
+
 const LISA_MAX_AGE = 50;
 
 function getLisaBonusMonthly(pot) {
@@ -1810,10 +1819,15 @@ function getLisaBonusMonthly(pot) {
   return (bonusableContrib * 0.25) / 12;
 }
 
-function getLisaContribYears(years) {
-  const currentAge = parseInt(currentAgeInput.value) || 37;
-  if (currentAge >= LISA_MAX_AGE) return 0;
-  return Math.min(years, LISA_MAX_AGE - currentAge);
+function getLisaContribYears(years, pot) {
+  let age;
+  if (pot && pot.owner === 'partner') {
+    age = parseInt(document.getElementById('partnerAge').value) || 18;
+  } else {
+    age = parseInt(currentAgeInput.value) || 18;
+  }
+  if (age >= LISA_MAX_AGE) return 0;
+  return Math.min(years, LISA_MAX_AGE - age);
 }
 
 function projectPot(pot, years, rate) {
@@ -1821,7 +1835,7 @@ function projectPot(pot, years, rate) {
   const monthlyRate = potRate / 12;
   const monthly = getMonthlyContrib(pot);
   const bonus = getLisaBonusMonthly(pot);
-  const lisaMonths = getLisaContribYears(years) * 12;
+  const lisaMonths = getLisaContribYears(years, pot) * 12;
   let val = pot.value;
   for (let m = 0; m < years * 12; m++) {
     const monthlyIn = monthly + (m < lisaMonths ? bonus : 0);
@@ -1835,7 +1849,7 @@ function projectPotByYear(pot, years, rate) {
   const monthlyRate = potRate / 12;
   const monthly = getMonthlyContrib(pot);
   const bonus = getLisaBonusMonthly(pot);
-  const lisaMonths = getLisaContribYears(years) * 12;
+  const lisaMonths = getLisaContribYears(years, pot) * 12;
   const values = [pot.value];
   let val = pot.value;
   let monthCount = 0;
@@ -2301,7 +2315,7 @@ function updateChart() {
 
   // Add total line if more than one pot and toggle is on
   const showTotal = document.getElementById('showTotalLine').checked;
-  if (pots.length > 1 && showTotal) {
+  if (dcPots.length > 1 && showTotal) {
     const totalData = allYearData[0].map((_, yi) => allYearData.reduce((sum, d) => sum + d[yi], 0));
     datasets.push({
       label: 'Total',
@@ -2403,9 +2417,10 @@ function updateSummary() {
         </div>
       `;
     }
-    const projected = projectPot(pot, years, rate);
-    const totalContribs = pot.value + getTotalContributions(pot, years);
-    const lisaContribYears = getLisaContribYears(years);
+    const potYears = getYearsForPot(pot, years);
+    const projected = projectPot(pot, potYears, rate);
+    const totalContribs = pot.value + getTotalContributions(pot, potYears);
+    const lisaContribYears = getLisaContribYears(potYears, pot);
     const lisaBonus = getLisaBonusMonthly(pot) * lisaContribYears * 12;
     const totalIn = totalContribs + lisaBonus;
     const growth = projected - totalIn;
@@ -2476,7 +2491,8 @@ function updateTotals() {
       totalDbIncome += pot.dbIncome || 0;
       return;
     }
-    totalProjected += projectPot(pot, years, rate);
+    const potYears = getYearsForPot(pot, years);
+    totalProjected += projectPot(pot, potYears, rate);
     totalMonthlyContrib += getMonthlyContrib(pot);
   });
 
@@ -2484,7 +2500,7 @@ function updateTotals() {
   let lumpTotal = 0;
   if (showLump) {
     pots.forEach(pot => {
-      if (pot.type === 'pension') lumpTotal += projectPot(pot, years, rate) * 0.25;
+      if (pot.type === 'pension') lumpTotal += projectPot(pot, getYearsForPot(pot, years), rate) * 0.25;
     });
   }
   const drawdownBase = totalProjected - lumpTotal;
@@ -2507,12 +2523,13 @@ function updateTotals() {
       taxIncomes.push({ amount: pot.dbIncome || 0, taxType: 'db', owner });
       return;
     }
-    const proj = projectPot(pot, years, rate);
+    const potYears = getYearsForPot(pot, years);
+    const proj = projectPot(pot, potYears, rate);
     const takeLump = showLump && pot.type === 'pension';
     const base = takeLump ? proj * 0.75 : proj;
     const inc = base * DRAWDOWN_RATE;
     if (pot.type === 'pension') taxIncomes.push({ amount: inc, taxType: 'pension', owner });
-    else if (pot.type === 'gia') taxIncomes.push({ amount: inc, taxType: 'gia', cgt: getGiaCgtOnDrawdown(pot, years, rate), owner });
+    else if (pot.type === 'gia') taxIncomes.push({ amount: inc, taxType: 'gia', cgt: getGiaCgtOnDrawdown(pot, potYears, rate), owner });
     else taxIncomes.push({ amount: inc, taxType: 'isa', owner });
   });
   taxIncomes.push({ amount: futureSP, taxType: 'state', owner: 'you' });
@@ -2634,7 +2651,7 @@ function updateTabs() {
   const { currentAge, retireAge, rate } = getInputs();
   const years = Math.max(retireAge - currentAge, 1);
 
-  const projected = pots.map(pot => pot.type === 'db-pension' ? 0 : projectPot(pot, years, rate));
+  const projected = pots.map(pot => pot.type === 'db-pension' ? 0 : projectPot(pot, getYearsForPot(pot, years), rate));
   const totalProjected = projected.reduce((a, b) => a + b, 0);
   const deflator = Math.pow(1 + INFLATION_RATE, years);
   let tabDbIncome = 0;
@@ -2705,7 +2722,7 @@ function updateTabs() {
     if (showLump && pot.type === 'pension') val *= 0.75;
     const inc = val * DRAWDOWN_RATE;
     if (pot.type === 'pension') drawdownTaxIncomes.push({ amount: inc, taxType: 'pension', owner });
-    else if (pot.type === 'gia') drawdownTaxIncomes.push({ amount: inc, taxType: 'gia', cgt: getGiaCgtOnDrawdown(pot, years, rate), owner });
+    else if (pot.type === 'gia') drawdownTaxIncomes.push({ amount: inc, taxType: 'gia', cgt: getGiaCgtOnDrawdown(pot, getYearsForPot(pot, years), rate), owner });
     else drawdownTaxIncomes.push({ amount: inc, taxType: 'isa', owner });
   });
   drawdownTaxIncomes.push({ amount: tabFutureSP, taxType: 'state', owner: 'you' });
@@ -2809,7 +2826,7 @@ function updateTabs() {
     if (showLump && pot.type === 'pension') val *= 0.75;
     const inc = val * getAnnuityRate(pot.type);
     if (pot.type === 'pension') annuityTaxIncomes.push({ amount: inc, taxType: 'pension', owner });
-    else if (pot.type === 'gia') annuityTaxIncomes.push({ amount: inc, taxType: 'gia', cgt: getGiaCgtOnDrawdown(pot, years, rate), owner });
+    else if (pot.type === 'gia') annuityTaxIncomes.push({ amount: inc, taxType: 'gia', cgt: getGiaCgtOnDrawdown(pot, getYearsForPot(pot, years), rate), owner });
     else annuityTaxIncomes.push({ amount: inc, taxType: 'isa', owner });
   });
   annuityTaxIncomes.push({ amount: tabFutureSP, taxType: 'state', owner: 'you' });
@@ -3160,12 +3177,14 @@ function updateEmptyState() {
 }
 
 function updateContribEquiv() {
-  const salary = parseFloat(salaryInput.dataset.raw) || 0;
+  const primarySalary = parseFloat(salaryInput.dataset.raw) || 0;
+  const partnerSalary = parseFloat(document.getElementById('partnerSalary').dataset.raw) || 0;
   document.querySelectorAll('.contrib-equiv').forEach(el => {
     const idx = el.dataset.index;
     if (idx === undefined) return;
     const pot = pots[idx];
     if (!pot || pot.contribMode !== 'percent') return;
+    const salary = pot.owner === 'partner' ? partnerSalary : primarySalary;
     const monthly = ((pot.employeeContrib + pot.employerContrib) / 100) * salary / 12;
     el.textContent = '= ' + fmt(monthly) + '/mo';
   });
@@ -3440,7 +3459,7 @@ function generatePDF() {
       const projected = projectPot(pot, yrs, rate);
       const monthly = getMonthlyContrib(pot);
       const totalContribs = pot.value + getTotalContributions(pot, yrs);
-      const lisaBonus = getLisaBonusMonthly(pot) * getLisaContribYears(yrs) * 12;
+      const lisaBonus = getLisaBonusMonthly(pot) * getLisaContribYears(yrs, pot) * 12;
       const totalIn = totalContribs + lisaBonus;
       const growth = projected - totalIn;
       const takeLump = showLump && pot.type === 'pension';
@@ -3462,7 +3481,7 @@ function generatePDF() {
       const projected = projectPot(pot, yrs, rate);
       const monthly = getMonthlyContrib(pot);
       const totalContribs = pot.value + getTotalContributions(pot, yrs);
-      const lisaBonus = getLisaBonusMonthly(pot) * getLisaContribYears(yrs) * 12;
+      const lisaBonus = getLisaBonusMonthly(pot) * getLisaContribYears(yrs, pot) * 12;
       const totalIn = totalContribs + lisaBonus;
       totalCurrent += pot.value;
       totalMonthly += monthly;
