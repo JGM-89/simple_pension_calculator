@@ -342,6 +342,30 @@ h1 {
   letter-spacing: 0.04em;
 }
 
+/* ── Owner group labels in summary/income ── */
+.owner-group-label {
+  grid-column: 1 / -1;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin-top: 4px;
+}
+
+.owner-group-label.you {
+  color: var(--color-accent-green);
+  border-left: 3px solid var(--color-accent-green);
+  background: rgba(29, 158, 117, 0.06);
+}
+
+.owner-group-label.partner {
+  color: #7F77DD;
+  border-left: 3px solid #7F77DD;
+  background: rgba(127, 119, 221, 0.06);
+}
+
 .pot-rate-group {
   display: flex;
   flex-direction: column;
@@ -910,6 +934,23 @@ h1 {
   font-size: 0.85rem;
   color: var(--color-text-secondary);
   font-weight: 400;
+}
+
+.monthly-hero {
+  display: block;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.monthly-hero-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-secondary);
+  margin-top: 6px;
 }
 
 .income-item-monthly {
@@ -2278,7 +2319,9 @@ function updateSummary() {
   const showLump = document.getElementById('lumpSumToggle').checked;
   const deflator = Math.pow(1 + INFLATION_RATE, years);
 
-  let cardsHTML = pots.map((pot, i) => {
+  const isCouple = document.getElementById('coupleToggle').checked;
+
+  function renderSummaryCard(pot, i) {
     const color = PALETTE[i % PALETTE.length];
     if (pot.type === 'db-pension') {
       const income = pot.dbIncome || 0;
@@ -2321,7 +2364,23 @@ function updateSummary() {
         <div class="summary-card-drawdown">4% drawdown: ${fmtR(drawdown, deflator)}/yr</div>
       </div>
     `;
-  }).join('');
+  }
+
+  let cardsHTML = '';
+  if (isCouple) {
+    const yourPots = pots.filter(p => p.owner !== 'partner');
+    const partnerPots = pots.filter(p => p.owner === 'partner');
+    if (yourPots.length) {
+      cardsHTML += `<div class="owner-group-label you">Your pots</div>`;
+      cardsHTML += yourPots.map(p => renderSummaryCard(p, pots.indexOf(p))).join('');
+    }
+    if (partnerPots.length) {
+      cardsHTML += `<div class="owner-group-label partner">Partner's pots</div>`;
+      cardsHTML += partnerPots.map(p => renderSummaryCard(p, pots.indexOf(p))).join('');
+    }
+  } else {
+    cardsHTML = pots.map((pot, i) => renderSummaryCard(pot, i)).join('');
+  }
 
   cardsHTML += `
     <div class="summary-card">
@@ -2407,13 +2466,17 @@ function updateTotals() {
     </div>
     <div class="total-item">
       <div class="total-label">Annual income (4% + state pension)${realLabel()}</div>
-      <div class="total-value accent">${fmtR(annualIncome, d)} <span class="monthly-sub">(${fmtR(annualIncome / 12, d)}/mo)</span></div>
+      <div class="total-value accent">${fmtR(annualIncome, d)}/yr</div>
+      <span class="monthly-hero-label">Monthly</span>
+      <span class="monthly-hero accent">${fmtR(annualIncome / 12, d)}/mo</span>
       <div class="total-sub">Drawdown ${fmtR(annualDrawdown, d)} + State pension ${fmtR(statePensionTotal, d)}${coupleMode ? ' (×2)' : ''}${totalDbIncome > 0 ? ' + DB pension ' + fmt(totalDbIncome) : ''}</div>
       ${lumpNote}
     </div>
     <div class="total-item">
       <div class="total-label">After tax (estimated)${realLabel()}</div>
-      <div class="total-value" style="color:#D85A30">${fmtR(afterTaxIncome, d)} <span class="monthly-sub">(${fmtR(afterTaxIncome / 12, d)}/mo)</span></div>
+      <div class="total-value" style="color:#D85A30">${fmtR(afterTaxIncome, d)}/yr</div>
+      <span class="monthly-hero-label">Monthly after tax</span>
+      <span class="monthly-hero" style="color:#D85A30">${fmtR(afterTaxIncome / 12, d)}/mo</span>
       <div class="total-sub">Income tax ${fmt(taxResult.incomeTax)}${taxResult.cgt > 0 ? ' + CGT ' + fmt(taxResult.cgt) : ''}</div>
     </div>
   `;
@@ -2463,6 +2526,24 @@ function getAnnuityLabel(type) {
   return pct + '%';
 }
 
+function groupByOwner(items, pots, isCouple) {
+  if (!isCouple) return items.join('');
+  const yourItems = [];
+  const partnerItems = [];
+  pots.forEach((pot, i) => {
+    if (pot.owner === 'partner') partnerItems.push(items[i]);
+    else yourItems.push(items[i]);
+  });
+  let html = '';
+  if (yourItems.length) {
+    html += `<div class="owner-group-label you">Your income</div>` + yourItems.join('');
+  }
+  if (partnerItems.length) {
+    html += `<div class="owner-group-label partner">Partner's income</div>` + partnerItems.join('');
+  }
+  return html;
+}
+
 function updateTabs() {
   const { currentAge, retireAge, rate } = getInputs();
   const years = Math.max(retireAge - currentAge, 1);
@@ -2475,6 +2556,7 @@ function updateTabs() {
 
   // ── Drawdown tab ──
   const showLump = document.getElementById('lumpSumToggle').checked;
+  const tabIsCouple = document.getElementById('coupleToggle').checked;
   let totalLumpSum = 0;
 
   const tabDeflator = deflator;
@@ -2516,12 +2598,12 @@ function updateTabs() {
         ${lumpNote}${note}
       </div>
     `;
-  }).join('');
+  });
+  const drawdownItemsHTML = groupByOwner(drawdownItems, pots, tabIsCouple);
 
   const adjustedTotal = showLump ? totalProjected - totalLumpSum : totalProjected;
   const drawdownTotal = adjustedTotal * DRAWDOWN_RATE;
   const tabFutureSP = futureStatePension(years);
-  const tabIsCouple = document.getElementById('coupleToggle').checked;
   const tabStatePensionTotal = tabIsCouple ? tabFutureSP * 2 : tabFutureSP;
   const drawdownPlusState = drawdownTotal + tabStatePensionTotal + tabDbIncome;
   const tabHasPensions = pots.some(p => p.type === 'pension');
@@ -2546,7 +2628,7 @@ function updateTabs() {
   const drawdownAfterTax = drawdownPlusState - drawdownTax.total;
 
   document.getElementById('tab-drawdown').innerHTML = `
-    <div class="income-breakdown">${drawdownItems}
+    <div class="income-breakdown">${drawdownItemsHTML}
       <div class="income-item">
         <div class="income-item-label">State pension${tabIsCouple ? ' (×2)' : ''}</div>
         <div class="income-item-value">${fmtR(tabStatePensionTotal, deflator)}/yr <span class="income-item-monthly">(${fmtR(tabStatePensionTotal / 12, deflator)}/mo)</span></div>
@@ -2555,12 +2637,16 @@ function updateTabs() {
     <div class="totals-row">
       <div class="total-item">
         <div class="total-label">Total annual income (drawdown)${realLabel()}</div>
-        <div class="total-value accent">${fmtR(drawdownPlusState, deflator)} <span class="monthly-sub">(${fmtR(drawdownPlusState / 12, deflator)}/mo)</span></div>
+        <div class="total-value accent">${fmtR(drawdownPlusState, deflator)}/yr</div>
+        <span class="monthly-hero-label">Monthly</span>
+        <span class="monthly-hero accent">${fmtR(drawdownPlusState / 12, deflator)}/mo</span>
         ${lumpSumNote}
       </div>
       <div class="total-item">
         <div class="total-label">After tax (estimated)${realLabel()}</div>
-        <div class="total-value" style="color:#D85A30">${fmtR(drawdownAfterTax, deflator)} <span class="monthly-sub">(${fmtR(drawdownAfterTax / 12, deflator)}/mo)</span></div>
+        <div class="total-value" style="color:#D85A30">${fmtR(drawdownAfterTax, deflator)}/yr</div>
+        <span class="monthly-hero-label">Monthly after tax</span>
+        <span class="monthly-hero" style="color:#D85A30">${fmtR(drawdownAfterTax / 12, deflator)}/mo</span>
         <div class="total-sub">Income tax ${fmt(drawdownTax.incomeTax)}${drawdownTax.cgt > 0 ? ' + CGT ' + fmt(drawdownTax.cgt) : ''}</div>
       </div>
     </div>
@@ -2625,7 +2711,8 @@ function updateTabs() {
         ${lumpNote}
       </div>
     `;
-  }).join('');
+  });
+  const annuityItemsHTML = groupByOwner(annuityItems, pots, tabIsCouple);
 
   const annuityLumpNote = showLump && annuityLumpTotal > 0 ? `<div class="total-sub">Plus ${fmt(annuityLumpTotal)} tax-free lump sum</div>` : '';
 
@@ -2647,7 +2734,7 @@ function updateTabs() {
   const annuityAfterTax = annuityTotal - annuityTaxResult.total;
 
   document.getElementById('tab-annuity').innerHTML = `
-    <div class="income-breakdown">${annuityItems}
+    <div class="income-breakdown">${annuityItemsHTML}
       <div class="income-item">
         <div class="income-item-label">State pension${tabIsCouple ? ' (×2)' : ''}</div>
         <div class="income-item-value">${fmtR(tabStatePensionTotal, deflator)}/yr <span class="income-item-monthly">(${fmtR(tabStatePensionTotal / 12, deflator)}/mo)</span></div>
@@ -2656,12 +2743,16 @@ function updateTabs() {
     <div class="totals-row">
       <div class="total-item">
         <div class="total-label">Total annual income (annuity)${realLabel()}</div>
-        <div class="total-value accent">${fmtR(annuityTotal, deflator)} <span class="monthly-sub">(${fmtR(annuityTotal / 12, deflator)}/mo)</span></div>
+        <div class="total-value accent">${fmtR(annuityTotal, deflator)}/yr</div>
+        <span class="monthly-hero-label">Monthly</span>
+        <span class="monthly-hero accent">${fmtR(annuityTotal / 12, deflator)}/mo</span>
         ${annuityLumpNote}
       </div>
       <div class="total-item">
         <div class="total-label">After tax (estimated)${realLabel()}</div>
-        <div class="total-value" style="color:#D85A30">${fmtR(annuityAfterTax, deflator)} <span class="monthly-sub">(${fmtR(annuityAfterTax / 12, deflator)}/mo)</span></div>
+        <div class="total-value" style="color:#D85A30">${fmtR(annuityAfterTax, deflator)}/yr</div>
+        <span class="monthly-hero-label">Monthly after tax</span>
+        <span class="monthly-hero" style="color:#D85A30">${fmtR(annuityAfterTax / 12, deflator)}/mo</span>
         <div class="total-sub">Income tax ${fmt(annuityTaxResult.incomeTax)}${annuityTaxResult.cgt > 0 ? ' + CGT ' + fmt(annuityTaxResult.cgt) : ''}</div>
       </div>
     </div>
