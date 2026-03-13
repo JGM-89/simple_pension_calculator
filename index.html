@@ -3632,7 +3632,7 @@ function generatePDF() {
   // ═══════════ Income Projection Renderer ═══════════
   const incomeTableRows = dcPots.length + dbPots.length + 3 + (pdfIsCouple ? 4 : 0); // pots + state pension + total + header + couple group rows
   const INCOME_TABLE_H = incomeTableRows * ROW_H;
-  const COMPARISON_BOX_H = 54; // sectionTitle(12) + box(34) + fine print(8)
+  const COMPARISON_BOX_H = 82; // sectionTitle(12) + box(34) + warning(28) + fine print(8)
   const SECTION_TITLE_H = 12;
 
   function renderIncomeSection(title, data, comparisonLabel, noteText) {
@@ -3655,8 +3655,30 @@ function generatePDF() {
           y += 8;
         }
       }},
-      { h: boxH, render: () => {
+      { h: boxH + 28, render: () => {
         y = drawComparisonBox(comparisonLabel, data.drawdown, data.annuity, y);
+
+        // Annuity inflation warning
+        const annuityIn20 = data.annuity / Math.pow(1.025, 20);
+        doc.setFillColor(255, 248, 235);
+        doc.setDrawColor(210, 160, 60);
+        doc.setLineWidth(0.3);
+        const warnH = 16;
+        doc.roundedRect(margin, y, contentW, warnH, 2, 2, 'FD');
+        doc.setFontSize(7.5);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(140, 100, 20);
+        doc.text('⚠ Not a like-for-like comparison', margin + 4, y + 4.5);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 70, 10);
+        const warnLines = doc.splitTextToSize(
+          'Annuity income is fixed forever — it looks higher today, but inflation erodes its value every year. ' +
+          'After 20 years at 2.5% inflation, the annuity income of ' + fmtPdf(data.annuity) + '/yr would feel like ' +
+          fmtPdf(annuityIn20) + '/yr in today\'s money. Drawdown income can grow because your pot stays invested.',
+          contentW - 8);
+        doc.text(warnLines, margin + 4, y + 8.5);
+        y += warnH + 4;
+
         doc.setFontSize(8);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(120);
