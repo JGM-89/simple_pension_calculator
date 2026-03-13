@@ -299,20 +299,36 @@ h1 {
   color: #fff;
 }
 
-/* ── Partner section ── */
+/* ── Pot sections ── */
+.your-section,
 .partner-section {
   margin-top: 24px;
-  border: 1.5px solid #7F77DD;
+  border: 1.5px solid var(--color-accent-green);
   border-radius: 12px;
   padding: 16px;
+  background: rgba(29, 158, 117, 0.03);
+}
+
+.partner-section {
+  border-color: #7F77DD;
   background: rgba(127, 119, 221, 0.05);
 }
 
+.your-section-header,
 .partner-section-header {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 12px;
+}
+
+.your-section-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-accent-green);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .partner-section-header h3 {
@@ -1333,7 +1349,7 @@ h1 {
     <label for="salary">Annual salary</label>
     <input type="text" id="salary" value="" data-raw="0" class="salary-display" placeholder="£0">
   </div>
-  <div class="control-group" style="justify-content:center">
+  <div class="control-group" style="justify-content:center;flex:0;min-width:auto">
     <div class="couple-toggle" id="coupleToggleWrap">
       <button class="couple-toggle-btn active" data-mode="single">Single</button>
       <button class="couple-toggle-btn" data-mode="couple">Couple</button>
@@ -1342,19 +1358,22 @@ h1 {
   </div>
 </div>
 
-<!-- 2. Pot cards -->
-<div class="pots-grid" id="potsGrid"></div>
-
-<!-- 3. Add pot buttons -->
-<div class="add-pot-buttons" id="addPotButtons">
-  <button class="add-pot-btn" id="addPensionBtn" type="button">+ Add pension</button>
-  <button class="add-pot-btn" id="addIsaBtn" type="button">+ Add S&amp;S ISA</button>
-  <button class="add-pot-btn" id="addGiaBtn" type="button">+ Add GIA</button>
-  <button class="add-pot-btn" id="addCashIsaBtn" type="button">+ Add Cash ISA</button>
-  <button class="add-pot-btn" id="addLisaBtn" type="button">+ Add S&amp;S LISA</button>
-  <button class="add-pot-btn" id="addCashLisaBtn" type="button">+ Add Cash LISA</button>
-  <button class="add-pot-btn" id="addPremiumBondsBtn" type="button">+ Add Premium Bonds</button>
-  <button class="add-pot-btn" id="addDbPensionBtn" type="button">+ Add DB pension</button>
+<!-- 2. Your pots section -->
+<div class="your-section" id="yourSection">
+  <div class="your-section-header">
+    <h3>Your Pots</h3>
+  </div>
+  <div class="pots-grid" id="potsGrid"></div>
+  <div class="add-pot-buttons" id="addPotButtons">
+    <button class="add-pot-btn" id="addPensionBtn" type="button">+ Add pension</button>
+    <button class="add-pot-btn" id="addIsaBtn" type="button">+ Add S&amp;S ISA</button>
+    <button class="add-pot-btn" id="addGiaBtn" type="button">+ Add GIA</button>
+    <button class="add-pot-btn" id="addCashIsaBtn" type="button">+ Add Cash ISA</button>
+    <button class="add-pot-btn" id="addLisaBtn" type="button">+ Add S&amp;S LISA</button>
+    <button class="add-pot-btn" id="addCashLisaBtn" type="button">+ Add Cash LISA</button>
+    <button class="add-pot-btn" id="addPremiumBondsBtn" type="button">+ Add Premium Bonds</button>
+    <button class="add-pot-btn" id="addDbPensionBtn" type="button">+ Add DB pension</button>
+  </div>
 </div>
 
 <!-- Partner section (hidden by default) -->
