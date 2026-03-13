@@ -6,12 +6,17 @@ A free, private retirement planning calculator that runs entirely in your browse
 
 ## Features
 
-- **Multiple pot types** — Pensions (with employer/employee contributions), S&S ISAs, Cash ISAs, and Premium Bonds
-- **Flexible contributions** — Switch between £/month and % of salary for pensions
-- **Growth projections** — Interactive Chart.js graph showing projected pot values to retirement
-- **Drawdown vs Annuity** — Compare 4% drawdown and annuity income side by side
+- **7 pot types** — Pensions, S&S ISAs, Cash ISAs, S&S LISAs, Cash LISAs, Premium Bonds, and Defined Benefit pensions
+- **LISA government bonus** — 25% bonus on contributions up to £4,000/yr, automatically stops at age 50
+- **Defined benefit pensions** — Model guaranteed income from DB schemes (e.g. NHS, Teachers', Civil Service) with optional inflation linking
+- **Flexible contributions** — Switch between £/month and % of salary for pensions; employer and employee contributions shown separately
+- **Growth projections** — Interactive chart showing projected pot values to retirement
+- **Income comparison** — Drawdown (4% rule), annuity, and side-by-side comparison tabs
+- **25% tax-free lump sum** — Toggle to model taking the pension lump sum, with drawdown recalculated accordingly
+- **Target income** — Set a desired retirement income and see how much extra you need to contribute monthly
 - **Dark mode** — Automatically matches your system theme
 - **Persistent** — Your data is saved in localStorage and restored on return
+- **Blank start** — No assumed age, salary, or pots. Build your own picture from scratch
 
 ## Privacy
 
@@ -23,8 +28,14 @@ All calculations run client-side in your browser. No data is sent to any server.
 - Inflation modelled at 2.5% per year
 - State pension at current full rate of £11,500/yr
 - Drawdown uses the 4% withdrawal rule
-- Annuity rates are illustrative (5% pension, 4% ISA, 3% cash/bonds)
+- Annuity rates are illustrative (5% pension, 4% ISA/LISA, 3% cash/bonds)
+- LISA contributions capped at £4,000/yr with 25% government bonus; bonus stops at age 50
 - Premium Bonds use the NS&I prize fund rate as expected return — actual returns are probabilistic
+- Defined benefit income is entered manually — check your annual benefit statement for your projected amount
 - Tax implications are not modelled
 
 **This tool is for illustration only and does not constitute financial advice.**
+
+## License
+
+GPL-3.0 — see [LICENSE](LICENSE) for details.

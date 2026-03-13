@@ -3,17 +3,20 @@
 ## 2026-03-13
 
 ### New features
+- **S&S LISA and Cash LISA** — new pot types with 25% government bonus on contributions (capped at £4,000/yr), bonus stops at age 50
+- **Defined benefit pensions** — guaranteed annual income pot type (e.g. NHS, Teachers', Civil Service). No pot value or chart line — flows directly into all income calculations. Supports inflation-linked toggle
+- **25% tax-free lump sum toggle** — optionally model taking the 25% pension lump sum, which reduces drawdown income across summary cards, totals, and income tabs
+- **Target income tab** — enter a desired retirement income and see how much extra you need to contribute monthly to reach it
 - **Monthly income figures** — projected income shown as £/month alongside £/year across all views
 - **Contribution breakdown** — each pot card displays employee vs employer contributions separately
-- **25% tax-free lump sum toggle** — optionally model taking the 25% pension lump sum, which reduces drawdown income accordingly across summary cards, totals, and income tabs
-- **Reset button** — clears all pots, settings, and saved state back to defaults
-- **Target income tab** — enter a desired retirement income and see how much extra you need to contribute monthly to reach it
-- **Defined benefit pensions** — new pot type for guaranteed annual income (e.g. NHS, Teachers', Civil Service pensions). No pot value or chart line — flows directly into all income calculations. Supports inflation-linked toggle
 - **Show total toggle** — optional total line on the growth chart (off by default), inline with the legend
+- **Reset button** — clears all pots, settings, and saved state back to defaults
+- **Empty start** — page loads with no pots, no assumed age or salary. Users build their own picture from scratch
 
 ### Improvements
 - Retirement age slider now ranges from current age to 100 (was 57–70), default changed to 67
 - ISA renamed to S&S ISA throughout the app
+- All pots can be removed (no forced minimum of one pot)
 - Lump sum toggle moved from chart area to above income tabs where it's contextually relevant
 - Toggling lump sum no longer causes layout shifts — elements stay in place using visibility
 
@@ -26,7 +29,7 @@
 ## 2026-03-12
 
 ### Initial release
-- Multi-pot retirement planner supporting Pension, ISA, Cash ISA, and Premium Bonds
+- Multi-pot retirement planner supporting Pension, S&S ISA, Cash ISA, and Premium Bonds
 - Compound growth projection chart (Chart.js)
 - Drawdown, annuity, and comparison income tabs
 - State pension included in all income calculations
