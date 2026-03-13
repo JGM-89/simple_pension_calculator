@@ -962,13 +962,13 @@ h1 {
 </div>
 
 <!-- 6. Pot summary cards -->
-<label class="lump-sum-toggle"><input type="checkbox" id="lumpSumToggle"> Show 25% tax-free pension lump sum</label>
 <div class="summary-grid" id="summaryGrid"></div>
 
 <!-- 7. Totals row -->
 <div class="totals-row" id="totalsRow"></div>
 
 <!-- 8. Tabs -->
+<label class="lump-sum-toggle"><input type="checkbox" id="lumpSumToggle"> Take 25% tax-free pension lump sum</label>
 <div class="tabs">
   <button class="tab-btn active" data-tab="drawdown">Drawdown</button>
   <button class="tab-btn" data-tab="annuity">Annuity</button>
@@ -1553,8 +1553,10 @@ function updateSummary() {
     const projected = projectPot(pot, years, rate);
     const totalContribs = pot.value + getTotalContributions(pot, years);
     const growth = projected - totalContribs;
-    const drawdown = projected * DRAWDOWN_RATE;
-    const lumpHTML = (showLump && pot.type === 'pension') ? `<div class="summary-card-lump">25% tax-free lump sum: ${fmt(projected * 0.25)}</div>` : '';
+    const takeLump = showLump && pot.type === 'pension';
+    const drawdownBase = takeLump ? projected * 0.75 : projected;
+    const drawdown = drawdownBase * DRAWDOWN_RATE;
+    const lumpHTML = takeLump ? `<div class="summary-card-lump">25% tax-free lump sum: ${fmt(projected * 0.25)}</div>` : '';
     return `
       <div class="summary-card">
         <div class="summary-card-header">
@@ -1602,10 +1604,19 @@ function updateTotals() {
     totalMonthlyContrib += getMonthlyContrib(pot);
   });
 
-  const annualDrawdown = totalProjected * DRAWDOWN_RATE;
+  const showLump = document.getElementById('lumpSumToggle').checked;
+  let lumpTotal = 0;
+  if (showLump) {
+    pots.forEach(pot => {
+      if (pot.type === 'pension') lumpTotal += projectPot(pot, years, rate) * 0.25;
+    });
+  }
+  const drawdownBase = totalProjected - lumpTotal;
+  const annualDrawdown = drawdownBase * DRAWDOWN_RATE;
   const annualIncome = annualDrawdown + STATE_PENSION + totalDbIncome;
   const deflator = Math.pow(1 + INFLATION_RATE, years);
   const todaysMoney = annualIncome / deflator;
+  const lumpNote = showLump && lumpTotal > 0 ? `<div class="total-sub">Plus ${fmt(lumpTotal)} tax-free lump sum</div>` : '';
 
   totalsRow.innerHTML = `
     <div class="total-item">
@@ -1620,6 +1631,7 @@ function updateTotals() {
       <div class="total-label">Annual income (4% + state pension)</div>
       <div class="total-value accent">${fmt(annualIncome)} <span class="monthly-sub">(${fmt(annualIncome / 12)}/mo)</span></div>
       <div class="total-sub">Drawdown ${fmt(annualDrawdown)} + State pension ${fmt(STATE_PENSION)}${totalDbIncome > 0 ? ' + DB pension ' + fmt(totalDbIncome) : ''}</div>
+      ${lumpNote}
     </div>
     <div class="total-item">
       <div class="total-label">In today's money (2.5% inflation)</div>
@@ -1901,6 +1913,7 @@ document.getElementById('showTotalLine').addEventListener('change', () => {
 
 document.getElementById('lumpSumToggle').addEventListener('change', () => {
   updateSummary();
+  updateTotals();
   updateTabs();
   saveState();
 });
