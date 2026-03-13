@@ -1721,7 +1721,7 @@ function updateTotals() {
       ${lumpNote}
     </div>
     <div class="total-item">
-      <div class="total-label">In today's money (2.5% inflation)</div>
+      <div class="total-label">Worth in today's money (after 2.5%/yr inflation)</div>
       <div class="total-value">${fmt(todaysMoney)} <span class="monthly-sub">(${fmt(todaysMoney / 12)}/mo)</span></div>
     </div>
   `;
@@ -1807,7 +1807,7 @@ function updateTabs() {
         ${lumpSumNote}
       </div>
       <div class="total-item">
-        <div class="total-label">In today's money</div>
+        <div class="total-label">Worth in today's money (after 2.5%/yr inflation)</div>
         <div class="total-value">${fmt(drawdownPlusState / deflator)} <span class="monthly-sub">(${fmt(drawdownPlusState / deflator / 12)}/mo)</span></div>
       </div>
     </div>
@@ -1864,7 +1864,7 @@ function updateTabs() {
         ${annuityLumpNote}
       </div>
       <div class="total-item">
-        <div class="total-label">In today's money</div>
+        <div class="total-label">Worth in today's money (after 2.5%/yr inflation)</div>
         <div class="total-value">${fmt(annuityTotal / deflator)} <span class="monthly-sub">(${fmt(annuityTotal / deflator / 12)}/mo)</span></div>
       </div>
     </div>
@@ -1886,14 +1886,14 @@ function updateTabs() {
         <div class="compare-total">${fmt(drawdownPlusState)}/yr <span class="monthly-sub">(${fmt(drawdownPlusState / 12)}/mo)</span></div>
         <div class="compare-detail">Pot drawdown: ${fmt(drawdownTotal)}</div>
         <div class="compare-detail">State pension: ${fmt(STATE_PENSION)}</div>
-        <div class="compare-detail">In today's money: ${fmt(drawdownPlusState / deflator)}/yr</div>
+        <div class="compare-detail">After inflation: ${fmt(drawdownPlusState / deflator)}/yr</div>
       </div>
       <div class="compare-card ${drawdownBetter ? 'featured' : ''}">
         <h4>Annuity</h4>
         <div class="compare-total">${fmt(annuityTotal)}/yr <span class="monthly-sub">(${fmt(annuityTotal / 12)}/mo)</span></div>
         <div class="compare-detail">Pension @ 5%, ISA @ 4%, Cash/Bonds @ 3%</div>
         <div class="compare-detail">State pension: ${fmt(STATE_PENSION)}</div>
-        <div class="compare-detail">In today's money: ${fmt(annuityTotal / deflator)}/yr</div>
+        <div class="compare-detail">After inflation: ${fmt(annuityTotal / deflator)}/yr</div>
       </div>
     </div>
     <p class="tab-note">${compNote}</p>
