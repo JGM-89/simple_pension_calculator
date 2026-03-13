@@ -770,6 +770,13 @@ h1 {
   accent-color: var(--color-accent-green);
 }
 
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+}
+
 .summary-card-lump {
   font-size: 0.8rem;
   color: var(--color-accent-green);
@@ -948,7 +955,13 @@ h1 {
   </div>
 </div>
 
+<!-- Empty state -->
+<div id="emptyState" class="empty-state" style="display:none">
+  <p>Add a pension, ISA, or other pot to get started.</p>
+</div>
+
 <!-- 4. Chart -->
+<div id="resultsSection">
 <div class="chart-container">
   <canvas id="growthChart"></canvas>
 </div>
@@ -978,6 +991,7 @@ h1 {
 <div class="tab-panel" id="tab-annuity"></div>
 <div class="tab-panel" id="tab-compare"></div>
 <div class="tab-panel" id="tab-target"></div>
+</div>
 
 <!-- 9. Disclaimers -->
 <div class="disclaimers">
@@ -1026,9 +1040,7 @@ function loadState() {
   } catch(e) { return null; }
 }
 
-let pots = [
-  { name: 'Pension 1', type: 'pension', value: 30000, employeeContrib: 3, employerContrib: 3, contribMode: 'percent' },
-];
+let pots = [];
 
 let chart = null;
 
@@ -1170,7 +1182,7 @@ function renderPots() {
           </label>
         </div>
         <div class="db-pension-note">Guaranteed income — no pot to invest</div>
-        ${pots.length > 1 ? `<button class="pot-remove" data-index="${i}" title="Remove pot">&times;</button>` : ''}
+        <button class="pot-remove" data-index="${i}" title="Remove pot">&times;</button>
       `;
       potsGrid.appendChild(card);
       return;
@@ -1232,7 +1244,7 @@ function renderPots() {
       </div>
       ${rateHTML}
       ${contribHTML}
-      ${pots.length > 1 ? `<button class="pot-remove" data-index="${i}" title="Remove pot">&times;</button>` : ''}
+      <button class="pot-remove" data-index="${i}" title="Remove pot">&times;</button>
     `;
     potsGrid.appendChild(card);
   });
@@ -1952,9 +1964,7 @@ document.getElementById('lumpSumToggle').addEventListener('change', () => {
 document.getElementById('resetBtn').addEventListener('click', () => {
   if (!confirm('Reset all settings to defaults? This will clear your saved data.')) return;
   localStorage.removeItem('retirementPlanner');
-  pots = [
-    { name: 'Pension 1', type: 'pension', value: 30000, employeeContrib: 3, employerContrib: 3, contribMode: 'percent' },
-  ];
+  pots = [];
   currentAgeInput.value = 37;
   retireAgeInput.value = 67;
   retireAgeValue.textContent = '67';
@@ -1983,7 +1993,15 @@ salaryInput.addEventListener('input', e => {
 });
 
 // ── Update helpers ──
+function updateEmptyState() {
+  const empty = pots.length === 0;
+  document.getElementById('emptyState').style.display = empty ? '' : 'none';
+  document.getElementById('resultsSection').style.display = empty ? 'none' : '';
+}
+
 function updateWithoutRerender() {
+  updateEmptyState();
+  if (pots.length === 0) { saveState(); return; }
   updateChart();
   updateLegend();
   updateSummary();
@@ -1994,6 +2012,8 @@ function updateWithoutRerender() {
 
 function updateAll() {
   renderPots();
+  updateEmptyState();
+  if (pots.length === 0) { saveState(); return; }
   updateChart();
   updateLegend();
   updateSummary();
