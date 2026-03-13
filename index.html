@@ -918,7 +918,7 @@ h1 {
 <div class="controls">
   <div class="control-group">
     <label for="currentAge">Current age</label>
-    <input type="number" id="currentAge" value="37" min="18" max="99" class="salary-display" style="width:60px">
+    <input type="number" id="currentAge" value="" min="18" max="99" class="salary-display" style="width:60px" placeholder="30">
   </div>
   <div class="control-group">
     <label for="retireAge">Retire at age <span class="control-value" id="retireAgeValue">67</span></label>
@@ -930,7 +930,7 @@ h1 {
   </div>
   <div class="control-group">
     <label for="salary">Annual salary</label>
-    <input type="text" id="salary" value="£35,000" data-raw="35000" class="salary-display">
+    <input type="text" id="salary" value="" data-raw="0" class="salary-display" placeholder="£0">
   </div>
 </div>
 
@@ -2025,13 +2025,13 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   if (!confirm('Reset all settings to defaults? This will clear your saved data.')) return;
   localStorage.removeItem('retirementPlanner');
   pots = [];
-  currentAgeInput.value = 37;
+  currentAgeInput.value = '';
   retireAgeInput.value = 67;
   retireAgeValue.textContent = '67';
   annualRateInput.value = 7;
   annualRateValue.textContent = '7%';
-  salaryInput.dataset.raw = '35000';
-  salaryInput.value = fmt(35000);
+  salaryInput.dataset.raw = '0';
+  salaryInput.value = '';
   document.getElementById('showTotalLine').checked = false;
   document.getElementById('lumpSumToggle').checked = false;
   updateAll();
