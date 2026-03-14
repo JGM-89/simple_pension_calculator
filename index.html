@@ -1862,10 +1862,12 @@ function projectPot(pot, years, rate) {
   const monthlyRate = potRate / 12;
   const monthly = getMonthlyContrib(pot);
   const bonus = getLisaBonusMonthly(pot);
-  const lisaMonths = getLisaContribYears(years, pot) * 12;
+  const isLisaPot = isLisa(pot.type);
+  const lisaMonths = isLisaPot ? getLisaContribYears(years, pot) * 12 : 0;
   let val = pot.value;
   for (let m = 0; m < years * 12; m++) {
-    const monthlyIn = monthly + (m < lisaMonths ? bonus : 0);
+    const contribActive = isLisaPot ? m < lisaMonths : true;
+    const monthlyIn = contribActive ? monthly + (m < lisaMonths ? bonus : 0) : 0;
     val = val * (1 + monthlyRate) + monthlyIn;
   }
   return val;
@@ -1876,13 +1878,15 @@ function projectPotByYear(pot, years, rate) {
   const monthlyRate = potRate / 12;
   const monthly = getMonthlyContrib(pot);
   const bonus = getLisaBonusMonthly(pot);
-  const lisaMonths = getLisaContribYears(years, pot) * 12;
+  const isLisaPot = isLisa(pot.type);
+  const lisaMonths = isLisaPot ? getLisaContribYears(years, pot) * 12 : 0;
   const values = [pot.value];
   let val = pot.value;
   let monthCount = 0;
   for (let y = 0; y < years; y++) {
     for (let m = 0; m < 12; m++) {
-      const monthlyIn = monthly + (monthCount < lisaMonths ? bonus : 0);
+      const contribActive = isLisaPot ? monthCount < lisaMonths : true;
+      const monthlyIn = contribActive ? monthly + (monthCount < lisaMonths ? bonus : 0) : 0;
       val = val * (1 + monthlyRate) + monthlyIn;
       monthCount++;
     }
@@ -1892,7 +1896,12 @@ function projectPotByYear(pot, years, rate) {
 }
 
 function getTotalContributions(pot, years) {
-  return getMonthlyContrib(pot) * years * 12;
+  const monthly = getMonthlyContrib(pot);
+  if (isLisa(pot.type)) {
+    const contribYears = getLisaContribYears(years, pot);
+    return monthly * contribYears * 12;
+  }
+  return monthly * years * 12;
 }
 
 function isPensionType(type) {
