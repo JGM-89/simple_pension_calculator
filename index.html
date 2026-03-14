@@ -2057,11 +2057,15 @@ function renderPots() {
         ${isPct && monthlyEquiv ? `<div class="contrib-equiv" data-index="${i}">= ${monthlyEquiv}</div>` : ''}
       `;
     } else {
+      const lisaMax = isLisa(pot.type) ? Math.floor(LISA_ANNUAL_CAP / 12) : '';
+      const lisaMaxAttr = lisaMax ? ` max="${lisaMax}"` : '';
+      const lisaNote = isLisa(pot.type) ? `<div style="font-size:0.7rem;color:var(--color-text-secondary);margin-top:2px">Max £${lisaMax}/mo (£${LISA_ANNUAL_CAP.toLocaleString()}/yr LISA limit)</div>` : '';
       contribHTML = `
         <div class="pot-contrib-row">
           <div class="pot-contrib-field">
             <label>Monthly contribution (£/mo)</label>
-            <input type="number" min="0" step="1" value="${pot.employeeContrib}" data-index="${i}" class="employee-contrib-input">
+            <input type="number" min="0"${lisaMaxAttr} step="1" value="${pot.employeeContrib}" data-index="${i}" class="employee-contrib-input">
+            ${lisaNote}
           </div>
         </div>
       `;
@@ -2129,7 +2133,13 @@ function renderPots() {
   // Contribution editing
   qAll('.employee-contrib-input').forEach(input => {
     input.addEventListener('input', e => {
-      pots[e.target.dataset.index].employeeContrib = parseFloat(e.target.value) || 0;
+      let val = parseFloat(e.target.value) || 0;
+      const pot = pots[e.target.dataset.index];
+      if (isLisa(pot.type)) {
+        const cap = Math.floor(LISA_ANNUAL_CAP / 12);
+        if (val > cap) { val = cap; e.target.value = cap; }
+      }
+      pot.employeeContrib = val;
       updateWithoutRerender();
     });
   });
@@ -2377,11 +2387,15 @@ function openAddForm(type, owner) {
     `;
   } else {
     // All other DC pot types: simple monthly contribution
+    const lisaMax = isLisa(type) ? Math.floor(LISA_ANNUAL_CAP / 12) : '';
+    const lisaMaxAttr = lisaMax ? ` max="${lisaMax}"` : '';
+    const lisaNote = isLisa(type) ? `<div style="font-size:0.7rem;color:var(--color-text-secondary);margin-top:2px">Max £${lisaMax}/mo (£${LISA_ANNUAL_CAP.toLocaleString()}/yr LISA limit)</div>` : '';
     html = `
       <div class="pot-contrib-row" style="margin-top:8px">
         <div class="pot-contrib-field">
           <label>Monthly contribution (£/mo)</label>
-          <input type="number" min="0" step="1" id="newPotMonthly" value="0">
+          <input type="number" min="0"${lisaMaxAttr} step="1" id="newPotMonthly" value="0">
+          ${lisaNote}
         </div>
       </div>
     `;
