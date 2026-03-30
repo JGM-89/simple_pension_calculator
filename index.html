@@ -1273,55 +1273,6 @@ h1 {
   accent-color: var(--color-accent-green);
 }
 
-/* ── Inflation slider ── */
-.inflation-slider-group {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 4px 0 12px;
-  flex-wrap: wrap;
-}
-.inflation-slider-label {
-  font-size: 0.85rem;
-  color: var(--color-text-secondary);
-  white-space: nowrap;
-}
-.inflation-slider {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 180px;
-  height: 6px;
-  border-radius: 3px;
-  background: var(--color-border);
-  outline: none;
-}
-.inflation-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--color-accent-green);
-  cursor: pointer;
-}
-.inflation-slider::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--color-accent-green);
-  cursor: pointer;
-  border: none;
-}
-.inflation-slider-ticks {
-  display: flex;
-  justify-content: space-between;
-  width: 180px;
-  font-size: 0.7rem;
-  color: var(--color-text-secondary);
-  margin-left: -192px;
-  margin-top: 22px;
-  pointer-events: none;
-}
 
 .empty-state {
   text-align: center;
@@ -1490,6 +1441,10 @@ h1 {
     <input type="range" id="annualRate" min="3" max="12" value="5">
   </div>
   <div class="control-group">
+    <label for="inflationRate">Inflation <span class="control-value" id="inflationRateDisplay">3%</span></label>
+    <input type="range" id="inflationRate" min="0" max="10" step="0.5" value="3">
+  </div>
+  <div class="control-group">
     <label for="salary">Annual salary</label>
     <input type="text" id="salary" value="" data-raw="0" class="salary-display" placeholder="£0">
   </div>
@@ -1595,12 +1550,6 @@ h1 {
 <label class="lump-sum-toggle" style="margin-bottom:0"><input type="checkbox" id="inflationToggle"> Inflation adjusted <span class="info-hint" data-tip="Prices rise over time (inflation). £100,000 in 30 years won't buy as much as £100,000 today. This adjusts future amounts so you can see what they'd actually feel like in terms of today's spending power.">?</span></label>
 </div>
 
-<!-- 5c. Inflation rate slider -->
-<div class="inflation-slider-group" id="inflationSliderGroup">
-<label for="inflationRate" class="inflation-slider-label">Average inflation rate: <strong id="inflationRateDisplay">2.5%</strong></label>
-<input type="range" id="inflationRate" min="0" max="10" step="0.5" value="2.5" class="inflation-slider">
-<div class="inflation-slider-ticks"><span>0%</span><span>5%</span><span>10%</span></div>
-</div>
 
 <!-- 6. Pot summary cards -->
 <h3 class="section-heading">Pot Summary</h3>
@@ -1634,7 +1583,7 @@ h1 {
   <h3>Assumptions &amp; Disclaimers</h3>
   <ul>
     <li>The default 5% growth rate assumes a broad global equity tracker fund (e.g. FTSE Global All Cap or MSCI World). This is a nominal return before inflation. Actual returns will vary and are not guaranteed.</li>
-    <li>Inflation is modelled at the rate you choose with the slider (default 2.5% per year). Real inflation may be higher or lower.</li>
+    <li>Inflation is modelled at the rate you choose with the slider (default 3% per year). Real inflation may be higher or lower.</li>
     <li>State pension is shown at the current full rate of £11,500/yr, projected forward at your chosen inflation rate (triple lock). This assumes no real-terms growth. Your entitlement depends on your National Insurance record and may change.</li>
     <li>Drawdown uses a fixed 4% withdrawal rate (the "4% rule"). This is a common guideline, not a guarantee of sustainable income.</li>
     <li>Annuity rates shown are illustrative (5% pension, 4% ISA/LISA, 3% Cash ISA/Cash LISA/Bonds). Actual annuity quotes depend on age, health, and market conditions at the time of purchase.</li>
@@ -3410,7 +3359,7 @@ document.getElementById('inflationToggle').addEventListener('change', () => {
 });
 
 document.getElementById('inflationRate').addEventListener('input', () => {
-  document.getElementById('inflationRateDisplay').textContent = document.getElementById('inflationRate').value + '%';
+  document.getElementById('inflationRateDisplay').textContent = parseFloat(document.getElementById('inflationRate').value) + '%';
   updateSummary();
   updateTotals();
   updateTabs();
@@ -3462,8 +3411,8 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   document.getElementById('showTotalLine').checked = false;
   document.getElementById('lumpSumToggle').checked = false;
   document.getElementById('inflationToggle').checked = false;
-  document.getElementById('inflationRate').value = 2.5;
-  document.getElementById('inflationRateDisplay').textContent = '2.5%';
+  document.getElementById('inflationRate').value = 3;
+  document.getElementById('inflationRateDisplay').textContent = '3%';
   document.getElementById('coupleToggle').checked = false;
   document.getElementById('partnerSection').style.display = 'none';
   document.getElementById('coupleToggleWrap').querySelectorAll('.couple-toggle-btn').forEach(b => {
