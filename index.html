@@ -1273,6 +1273,56 @@ h1 {
   accent-color: var(--color-accent-green);
 }
 
+/* ── Inflation slider ── */
+.inflation-slider-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 12px;
+  flex-wrap: wrap;
+}
+.inflation-slider-label {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+.inflation-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 180px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-border);
+  outline: none;
+}
+.inflation-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-accent-green);
+  cursor: pointer;
+}
+.inflation-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-accent-green);
+  cursor: pointer;
+  border: none;
+}
+.inflation-slider-ticks {
+  display: flex;
+  justify-content: space-between;
+  width: 180px;
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+  margin-left: -192px;
+  margin-top: 22px;
+  pointer-events: none;
+}
+
 .empty-state {
   text-align: center;
   padding: 48px 20px;
@@ -1542,7 +1592,14 @@ h1 {
 <!-- 5b. Toggles -->
 <div style="display:flex;flex-wrap:wrap;gap:16px;margin:12px 0">
 <label class="lump-sum-toggle" style="margin-bottom:0"><input type="checkbox" id="lumpSumToggle"> Take 25% tax-free pension lump sum</label>
-<label class="lump-sum-toggle" style="margin-bottom:0"><input type="checkbox" id="inflationToggle"> Show in today's money <span class="info-hint" data-tip="Prices rise over time (inflation). £100,000 in 30 years won't buy as much as £100,000 today. This adjusts future amounts so you can see what they'd actually feel like in terms of today's spending power. We assume 2.5% per year.">?</span></label>
+<label class="lump-sum-toggle" style="margin-bottom:0"><input type="checkbox" id="inflationToggle"> Inflation adjusted <span class="info-hint" data-tip="Prices rise over time (inflation). £100,000 in 30 years won't buy as much as £100,000 today. This adjusts future amounts so you can see what they'd actually feel like in terms of today's spending power.">?</span></label>
+</div>
+
+<!-- 5c. Inflation rate slider -->
+<div class="inflation-slider-group" id="inflationSliderGroup">
+<label for="inflationRate" class="inflation-slider-label">Average inflation rate: <strong id="inflationRateDisplay">2.5%</strong></label>
+<input type="range" id="inflationRate" min="0" max="10" step="0.5" value="2.5" class="inflation-slider">
+<div class="inflation-slider-ticks"><span>0%</span><span>5%</span><span>10%</span></div>
 </div>
 
 <!-- 6. Pot summary cards -->
@@ -1577,8 +1634,8 @@ h1 {
   <h3>Assumptions &amp; Disclaimers</h3>
   <ul>
     <li>The default 5% growth rate assumes a broad global equity tracker fund (e.g. FTSE Global All Cap or MSCI World). This is a nominal return before inflation. Actual returns will vary and are not guaranteed.</li>
-    <li>Inflation is modelled at a fixed 2.5% per year. Real inflation may be higher or lower.</li>
-    <li>State pension is shown at the current full rate of £11,500/yr, projected forward at 2.5% inflation (triple lock). This assumes no real-terms growth. Your entitlement depends on your National Insurance record and may change.</li>
+    <li>Inflation is modelled at the rate you choose with the slider (default 2.5% per year). Real inflation may be higher or lower.</li>
+    <li>State pension is shown at the current full rate of £11,500/yr, projected forward at your chosen inflation rate (triple lock). This assumes no real-terms growth. Your entitlement depends on your National Insurance record and may change.</li>
     <li>Drawdown uses a fixed 4% withdrawal rate (the "4% rule"). This is a common guideline, not a guarantee of sustainable income.</li>
     <li>Annuity rates shown are illustrative (5% pension, 4% ISA/LISA, 3% Cash ISA/Cash LISA/Bonds). Actual annuity quotes depend on age, health, and market conditions at the time of purchase.</li>
     <li>Lifetime ISAs (LISAs) include a 25% government bonus on contributions up to £4,000/yr (max £1,000 bonus/yr). Contributions are capped at £4,000/yr and the bonus stops at age 50. Withdrawals before age 60 (except for a first home) incur a 25% penalty — this is not modelled here.</li>
@@ -1605,7 +1662,8 @@ h1 {
 const PALETTE = ['#7F77DD','#1D9E75','#378ADD','#D85A30','#BA7517','#D4537E','#639922'];
 const STATE_PENSION = 11500;
 const DRAWDOWN_RATE = 0.04;
-const INFLATION_RATE = 0.025;
+function getInflationRate() { return parseFloat(document.getElementById('inflationRate').value) / 100; }
+const INFLATION_RATE = 0.025; // default fallback
 // PLSA Retirement Living Standards (2024)
 const PLSA_MINIMUM = 13000;
 const PLSA_MODERATE = 23300;
@@ -1696,7 +1754,7 @@ function calcRetirementTax(incomes, isCouple) {
 }
 
 function futureStatePension(years) {
-  return STATE_PENSION * Math.pow(1 + INFLATION_RATE, years);
+  return STATE_PENSION * Math.pow(1 + getInflationRate(), years);
 }
 const POT_TYPES = ['pension', 'sipp', 'isa', 'gia', 'cash-isa', 'lisa', 'cash-lisa', 'premium-bonds', 'db-pension'];
 
@@ -1711,6 +1769,7 @@ function saveState() {
     showTotal: document.getElementById('showTotalLine').checked,
     showLumpSum: document.getElementById('lumpSumToggle').checked,
     showReal: document.getElementById('inflationToggle').checked,
+    inflationRate: document.getElementById('inflationRate').value,
     coupleMode: document.getElementById('coupleToggle').checked,
     partnerAge: document.getElementById('partnerAge').value,
     partnerRetireAge: document.getElementById('partnerRetireAge').value,
@@ -1771,7 +1830,7 @@ function realLabel() {
 }
 
 function getPlsaColor(afterTaxIncome, years, isCouple) {
-  const deflator = Math.pow(1 + INFLATION_RATE, years);
+  const deflator = Math.pow(1 + getInflationRate(), years);
   const showReal = document.getElementById('inflationToggle') && document.getElementById('inflationToggle').checked;
   const bComf = (isCouple ? PLSA_COUPLE_COMFORTABLE : PLSA_COMFORTABLE) * (showReal ? 1 : deflator);
   const bMod = (isCouple ? PLSA_COUPLE_MODERATE : PLSA_MODERATE) * (showReal ? 1 : deflator);
@@ -2643,7 +2702,7 @@ function updateSummary() {
   const { currentAge, retireAge, rate } = getInputs();
   const years = Math.max(retireAge - currentAge, 1);
   const showLump = document.getElementById('lumpSumToggle').checked;
-  const deflator = Math.pow(1 + INFLATION_RATE, years);
+  const deflator = Math.pow(1 + getInflationRate(), years);
 
   const isCouple = document.getElementById('coupleToggle').checked;
 
@@ -2718,7 +2777,7 @@ function updateSummary() {
       <div class="summary-card-projected">${fmt(futureStatePension(years))}/yr</div>
       <div class="summary-card-start">${fmt(STATE_PENSION)}/yr today</div>
       <div class="summary-card-drawdown" style="color:var(--color-text-secondary)">Based on 35 qualifying years of NI</div>
-      <div class="summary-card-drawdown" style="color:var(--color-text-secondary);font-size:0.78rem;margin-top:2px">Projected at 2.5% inflation (triple lock) — no real-terms growth</div>
+      <div class="summary-card-drawdown" style="color:var(--color-text-secondary);font-size:0.78rem;margin-top:2px">Projected at ${(getInflationRate()*100).toFixed(1)}% inflation (triple lock) — no real-terms growth</div>
     </div>
   `;
 
@@ -2756,7 +2815,7 @@ function updateTotals() {
   const coupleMode = document.getElementById('coupleToggle').checked;
   const statePensionTotal = coupleMode ? futureSP * 2 : futureSP;
   const annualIncome = annualDrawdown + statePensionTotal + totalDbIncome;
-  const deflator = Math.pow(1 + INFLATION_RATE, years);
+  const deflator = Math.pow(1 + getInflationRate(), years);
   const hasPensions = pots.some(p => isPensionType(p.type));
   const lumpVis = showLump && lumpTotal > 0 ? '' : 'visibility:hidden';
   const lumpNote = hasPensions ? `<div class="total-sub" style="${lumpVis}">Plus ${fmt(lumpTotal)} tax-free lump sum</div>` : '';
@@ -2908,7 +2967,7 @@ function updateTabs() {
 
   const projected = pots.map(pot => pot.type === 'db-pension' ? 0 : projectPot(pot, getYearsForPot(pot, years), rate));
   const totalProjected = projected.reduce((a, b) => a + b, 0);
-  const deflator = Math.pow(1 + INFLATION_RATE, years);
+  const deflator = Math.pow(1 + getInflationRate(), years);
   let tabDbIncome = 0;
   pots.forEach(pot => { if (pot.type === 'db-pension') tabDbIncome += pot.dbIncome || 0; });
 
@@ -3132,7 +3191,7 @@ function updateTabs() {
         <div class="maths-row"><span class="maths-label">State pension${tabIsCouple ? ' (&times;2)' : ''}</span><span class="maths-value">${fmtR(tabStatePensionTotal, tabDeflator)}/yr</span></div>
         <div class="maths-row total"><span class="maths-label">Total gross income</span><span class="maths-value">${fmtR(annuityTotal, tabDeflator)}/yr</span></div>
         <div class="maths-heading">Why annuity rates are higher than drawdown</div>
-        <div class="maths-note" style="margin-top:0">A 5% annuity rate vs 4% drawdown rate looks better, but there's a catch: annuity income is <strong>fixed forever</strong>. In 20 years at 2.5% inflation, ${fmt(annuityAfterTax)}/yr will feel like ${fmt(annuityAfterTax / Math.pow(1.025, 20))}/yr in today's money. With drawdown, your pot stays invested and income can grow.</div>
+        <div class="maths-note" style="margin-top:0">A 5% annuity rate vs 4% drawdown rate looks better, but there's a catch: annuity income is <strong>fixed forever</strong>. In 20 years at ${(getInflationRate()*100).toFixed(1)}% inflation, ${fmt(annuityAfterTax)}/yr will feel like ${fmt(annuityAfterTax / Math.pow(1 + getInflationRate(), 20))}/yr in today's money. With drawdown, your pot stays invested and income can grow.</div>
         <div class="maths-heading">Annuity rates used</div>
         <div class="maths-row"><span class="maths-label">Pension / SIPP pots</span><span class="maths-value">5% (illustrative)</span></div>
         <div class="maths-row"><span class="maths-label">S&amp;S ISA / GIA / LISA</span><span class="maths-value">4% (illustrative)</span></div>
@@ -3149,12 +3208,12 @@ function updateTabs() {
     ? `Drawdown gives you ${fmt(diff)} more per year after tax, with flexibility to adjust withdrawals and pass on remaining capital.`
     : `Annuity gives you ${fmt(diff)} more per year after tax in guaranteed income, but you lose access to your capital.`;
 
-  const annuityIn20 = annuityAfterTax / Math.pow(1.025, 20);
+  const annuityIn20 = annuityAfterTax / Math.pow(1 + getInflationRate(), 20);
   const drawdownIn20Note = `With drawdown your pot stays invested — if markets return ~5% and you withdraw 4%, your income can grow roughly in line with inflation.`;
 
   document.getElementById('tab-compare').innerHTML = `
     <div class="compare-warning">
-      <strong>⚠ Not a like-for-like comparison.</strong> Annuity income is <em>fixed forever</em> — it looks higher today, but inflation erodes its value every year. Drawdown income can grow because your pot stays invested. After 20 years at 2.5% inflation, today's annuity income of ${fmtR(annuityAfterTax, deflator)} would feel like ${fmtR(annuityIn20, deflator)} in today's money.
+      <strong>⚠ Not a like-for-like comparison.</strong> Annuity income is <em>fixed forever</em> — it looks higher today, but inflation erodes its value every year. Drawdown income can grow because your pot stays invested. After 20 years at ${(getInflationRate()*100).toFixed(1)}% inflation, today's annuity income of ${fmtR(annuityAfterTax, deflator)} would feel like ${fmtR(annuityIn20, deflator)} in today's money.
     </div>
     <div class="compare-grid">
       <div class="compare-card ${drawdownBetter ? 'featured' : ''}">
@@ -3194,7 +3253,7 @@ function updateTabs() {
         <div class="maths-row"><span class="maths-label">Drawdown (4% withdrawal)</span><span class="maths-value">${fmtR(drawdownAfterTax, deflator)}/yr after tax</span></div>
         <div class="maths-row"><span class="maths-label">Annuity (level, no escalation)</span><span class="maths-value">${fmtR(annuityAfterTax, deflator)}/yr after tax</span></div>
         <div class="maths-row"><span class="maths-label">Difference</span><span class="maths-value">${fmtR(diff, deflator)}/yr in favour of ${drawdownBetter ? 'drawdown' : 'annuity'}</span></div>
-        <div class="maths-heading">But after 20 years at 2.5% inflation…</div>
+        <div class="maths-heading">But after 20 years at ${(getInflationRate()*100).toFixed(1)}% inflation…</div>
         <div class="maths-row"><span class="maths-label">Annuity (still fixed)</span><span class="maths-value">${fmtR(annuityAfterTax, deflator)} nominal, feels like ${fmtR(annuityIn20, deflator)} today</span></div>
         <div class="maths-row"><span class="maths-label">Drawdown (pot still invested)</span><span class="maths-value">Income can adjust with market returns</span></div>
         <div class="maths-note">${drawdownIn20Note}</div>
@@ -3350,6 +3409,14 @@ document.getElementById('inflationToggle').addEventListener('change', () => {
   saveState();
 });
 
+document.getElementById('inflationRate').addEventListener('input', () => {
+  document.getElementById('inflationRateDisplay').textContent = document.getElementById('inflationRate').value + '%';
+  updateSummary();
+  updateTotals();
+  updateTabs();
+  saveState();
+});
+
 // Couple mode pill toggle
 document.getElementById('coupleToggleWrap').querySelectorAll('.couple-toggle-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -3395,6 +3462,8 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   document.getElementById('showTotalLine').checked = false;
   document.getElementById('lumpSumToggle').checked = false;
   document.getElementById('inflationToggle').checked = false;
+  document.getElementById('inflationRate').value = 2.5;
+  document.getElementById('inflationRateDisplay').textContent = '2.5%';
   document.getElementById('coupleToggle').checked = false;
   document.getElementById('partnerSection').style.display = 'none';
   document.getElementById('coupleToggleWrap').querySelectorAll('.couple-toggle-btn').forEach(b => {
@@ -3483,6 +3552,10 @@ if (saved) {
   if (saved.showTotal) document.getElementById('showTotalLine').checked = true;
   if (saved.showLumpSum) document.getElementById('lumpSumToggle').checked = true;
   if (saved.showReal) document.getElementById('inflationToggle').checked = true;
+  if (saved.inflationRate !== undefined) {
+    document.getElementById('inflationRate').value = saved.inflationRate;
+    document.getElementById('inflationRateDisplay').textContent = saved.inflationRate + '%';
+  }
   if (saved.coupleMode) {
     document.getElementById('coupleToggle').checked = true;
     document.getElementById('partnerSection').style.display = '';
@@ -3546,7 +3619,7 @@ function generatePDF() {
   const years = Math.max(retireAge - currentAge, 1);
   const salary = parseFloat(salaryInput.dataset.raw) || 0;
   const showLump = document.getElementById('lumpSumToggle').checked;
-  const deflator = Math.pow(1 + INFLATION_RATE, years);
+  const deflator = Math.pow(1 + getInflationRate(), years);
   const futureSP = futureStatePension(years);
 
   const pdfIsCouple = document.getElementById('coupleToggle').checked;
@@ -3648,7 +3721,7 @@ function generatePDF() {
     y = boxLabelValue(doc, y, 'Partner retirement age', partnerRetireAge + '');
     y = boxLabelValue(doc, y, 'Partner salary', partnerSalary > 0 ? fmtPdf(partnerSalary) : 'Not specified');
   }
-  y = boxLabelValue(doc, y, 'Inflation assumption', '2.5% per year');
+  y = boxLabelValue(doc, y, 'Inflation assumption', (getInflationRate()*100).toFixed(1) + '% per year');
   y = boxLabelValue(doc, y, 'State pension (current)', pdfIsCouple ? fmtPdf(STATE_PENSION) + '/yr each' : fmtPdf(STATE_PENSION) + '/yr');
   y += 5;
 
@@ -3818,7 +3891,7 @@ function generatePDF() {
   doc.text('State Pension', margin, y);
   y += 6;
   y = labelValue(doc, y, 'Current full rate', fmtPdf(STATE_PENSION) + '/yr per person');
-  y = labelValue(doc, y, 'Projected at retirement (inflated 2.5%/yr)', fmtPdf(futureSP) + '/yr per person');
+  y = labelValue(doc, y, 'Projected at retirement (inflated ' + (getInflationRate()*100).toFixed(1) + '%/yr)', fmtPdf(futureSP) + '/yr per person');
   if (pdfIsCouple) {
     y = labelValue(doc, y, 'Combined state pension (×2)', fmtPdf(statePensionTotal) + '/yr');
   }
@@ -3977,7 +4050,7 @@ function generatePDF() {
         y = drawComparisonBox(comparisonLabel, data.drawdown, data.annuity, y);
 
         // Annuity inflation warning
-        const annuityIn20 = data.annuity / Math.pow(1.025, 20);
+        const annuityIn20 = data.annuity / Math.pow(1 + getInflationRate(), 20);
         doc.setFillColor(255, 248, 235);
         doc.setDrawColor(210, 160, 60);
         doc.setLineWidth(0.3);
@@ -3991,7 +4064,7 @@ function generatePDF() {
         doc.setTextColor(100, 70, 10);
         const warnLines = doc.splitTextToSize(
           'Annuity income is fixed forever — it looks higher today, but inflation erodes its value every year. ' +
-          'After 20 years at 2.5% inflation, the annuity income of ' + fmtPdf(data.annuity) + '/yr would feel like ' +
+          'After 20 years at ' + (getInflationRate()*100).toFixed(1) + '% inflation, the annuity income of ' + fmtPdf(data.annuity) + '/yr would feel like ' +
           fmtPdf(annuityIn20) + '/yr in today\'s money. Drawdown income can grow because your pot stays invested.',
           contentW - 8);
         doc.text(warnLines, margin + 4, y + 8.5);
@@ -4000,7 +4073,7 @@ function generatePDF() {
         doc.setFontSize(8);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(120);
-        doc.text('"Today\'s money" deflates future income by 2.5%/yr to show purchasing power in current terms.', margin, y);
+        doc.text('"Today\'s money" deflates future income by ' + (getInflationRate()*100).toFixed(1) + '%/yr to show purchasing power in current terms.', margin, y);
         y += 4;
       }},
     ]);
@@ -4064,7 +4137,7 @@ function generatePDF() {
 
   y = explainBlock(doc, y, 'State pension',
     'The full new State Pension is currently ' + fmtPdf(STATE_PENSION) + '/yr (2024/25). You need 35 qualifying years of National Insurance contributions ' +
-    'to get the full amount. This report inflates the state pension by 2.5%/yr to match the nominal terms used for pot projections. ' +
+    'to get the full amount. This report inflates the state pension by ' + (getInflationRate()*100).toFixed(1) + '%/yr to match the nominal terms used for pot projections. ' +
     'In reality, the State Pension rises by the triple lock — the highest of inflation (CPI), average earnings growth, or 2.5%.'
   );
 
@@ -4117,7 +4190,7 @@ function generatePDF() {
     'Premium Bonds returns are based on the NS&I prize fund rate — actual returns are probabilistic and may be zero.',
     'The 4% withdrawal rule is based on historical US equity/bond returns and is not guaranteed for the future.',
     'Past performance is not a reliable indicator of future results.',
-    'Inflation is modelled at a flat 2.5%/yr — actual inflation will vary.',
+    'Inflation is modelled at a flat ' + (getInflationRate()*100).toFixed(1) + '%/yr — actual inflation will vary.',
     'In couple mode, each person\'s income is taxed independently using their own personal allowance and bands.',
     'Consider seeking independent financial advice before making retirement decisions.',
   ];
