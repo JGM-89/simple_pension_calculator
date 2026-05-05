@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-05-05
+
+### Fixes
+- Corrected income tax band maths when the personal allowance tapers above £100k.
+- Updated State Pension, PLSA benchmark, income tax, and CGT assumptions to current 2026/27-facing figures.
+- GIA CGT now uses the basic/higher-rate CGT split instead of a flat old higher-rate estimate.
+- Inflation-linked DB pensions now project consistently into nominal retirement income and deflate correctly in today's-money mode.
+- Single mode no longer includes hidden partner pots in charts, summaries, income tabs, or PDF exports.
+
 ## 2026-03-13 (v3)
 
 ### New features

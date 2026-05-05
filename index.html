@@ -5,16 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdnjs.cloudflare.com 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:;">
 <title>Simple Pension Calculator — Free Private UK Retirement Planner</title>
-<meta name="description" content="Free UK pension calculator using 2024/25 tax bands. Model pensions, ISAs, LISAs, GIAs, and defined benefit schemes. Compare drawdown vs annuity income with income tax and CGT estimates. Plan for couples. 100% private — no sign-up, no data leaves your browser.">
+<meta name="description" content="Free UK pension calculator using 2026/27 tax bands. Model pensions, ISAs, LISAs, GIAs, and defined benefit schemes. Compare drawdown vs annuity income with income tax and CGT estimates. Plan for couples. 100% private — no sign-up, no data leaves your browser.">
 <meta name="keywords" content="pension calculator UK, retirement planner UK, SIPP calculator, drawdown calculator, annuity calculator, ISA calculator, LISA calculator, UK retirement income, pension tax calculator, couple retirement planning, private pension calculator, defined benefit pension, 4% rule calculator, workplace pension calculator">
 <link rel="canonical" href="https://simplepensioncalculator.co.uk/">
 <meta property="og:title" content="Simple Pension Calculator — Free Private UK Retirement Planner">
-<meta property="og:description" content="Free UK pension calculator with 2024/25 tax bands. Model pensions, ISAs, LISAs, GIAs, and DB schemes. 100% private — nothing leaves your browser.">
+<meta property="og:description" content="Free UK pension calculator with 2026/27 tax bands. Model pensions, ISAs, LISAs, GIAs, and DB schemes. 100% private — nothing leaves your browser.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://simplepensioncalculator.co.uk/">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Pension Calculator — Free Private UK Retirement Planner">
-<meta name="twitter:description" content="Free UK pension calculator with 2024/25 tax bands. Model pensions, ISAs, LISAs, GIAs, and DB schemes. 100% private — nothing leaves your browser.">
+<meta name="twitter:description" content="Free UK pension calculator with 2026/27 tax bands. Model pensions, ISAs, LISAs, GIAs, and DB schemes. 100% private — nothing leaves your browser.">
 <meta name="google-site-verification" content="zKzE9hf6Wtc4gytMNq6NLCd0ZLT0SvYxWS74jShWFf8" />
 <script type="application/ld+json">
 {
@@ -33,7 +33,7 @@
   "featureList": [
     "8 pot types: Pension, S&S ISA, GIA, Cash ISA, S&S LISA, Cash LISA, Premium Bonds, Defined Benefit",
     "Couple mode with separate ages, salaries, and pot ownership",
-    "Income tax estimation using 2024/25 bands with personal allowance taper",
+    "Income tax estimation using 2026/27 bands with personal allowance taper",
     "Capital Gains Tax modelling on GIA withdrawals",
     "LISA 25% government bonus modelling",
     "Drawdown (4% rule) vs annuity income comparison",
@@ -1584,15 +1584,15 @@ h1 {
   <ul>
     <li>The default 5% growth rate assumes a broad global equity tracker fund (e.g. FTSE Global All Cap or MSCI World). This is a nominal return before inflation. Actual returns will vary and are not guaranteed.</li>
     <li>Inflation is modelled at the rate you choose with the slider (default 3% per year). Real inflation may be higher or lower.</li>
-    <li>State pension is shown at the current full rate of £11,500/yr, projected forward at your chosen inflation rate (triple lock). This assumes no real-terms growth. Your entitlement depends on your National Insurance record and may change.</li>
+    <li>State pension is shown at the current full rate of £12,548/yr, projected forward at your chosen inflation rate (triple lock). This assumes no real-terms growth. Your entitlement depends on your National Insurance record and may change.</li>
     <li>Drawdown uses a fixed 4% withdrawal rate (the "4% rule"). This is a common guideline, not a guarantee of sustainable income.</li>
     <li>Annuity rates shown are illustrative (5% pension, 4% ISA/LISA, 3% Cash ISA/Cash LISA/Bonds). Actual annuity quotes depend on age, health, and market conditions at the time of purchase.</li>
     <li>Lifetime ISAs (LISAs) include a 25% government bonus on contributions up to £4,000/yr (max £1,000 bonus/yr). Contributions are capped at £4,000/yr and the bonus stops at age 50. Withdrawals before age 60 (except for a first home) incur a 25% penalty — this is not modelled here.</li>
     <li>Premium Bonds use the NS&amp;I prize fund rate as an expected return. Actual returns are probabilistic and may differ significantly, especially for smaller holdings.</li>
     <li>Defined benefit pensions provide guaranteed income based on salary and years of service. The income figure shown is what you enter — check your annual benefit statement for your projected amount.</li>
     <li>The 25% tax-free pension lump sum reduces your remaining pot and therefore your drawdown income. The lump sum is taken at retirement — in practice, you may take it in stages.</li>
-    <li>Tax estimates use 2024/25 income tax bands and CGT rates. They assume no other income in retirement. Personal allowance taper above £100k is modelled. Actual tax depends on your full circumstances — seek professional advice.</li>
-    <li>GIA (General Investment Account) withdrawals are subject to Capital Gains Tax on the gains portion. The CGT annual allowance (£3,000) and higher rate (20%) are used as a conservative estimate.</li>
+    <li>Tax estimates use 2026/27 income tax bands and CGT rates. They assume no other income in retirement. Personal allowance taper above £100k is modelled. Actual tax depends on your full circumstances — seek professional advice.</li>
+    <li>GIA (General Investment Account) withdrawals are subject to Capital Gains Tax on the gains portion. The CGT annual allowance (£3,000) and 18%/24% rates are used based on your remaining basic-rate band.</li>
     <li>Annuity income shown is level (non-escalating) — it is fixed at purchase and loses buying power to inflation every year. Drawdown income can grow because your pot stays invested. Year-1 comparisons alone are misleading.</li>
     <li>In couple mode, each person's income is taxed independently using their own personal allowance and tax bands.</li>
     <li>PLSA Retirement Living Standards benchmarks (Minimum, Moderate, Comfortable) are used as reference points and updated periodically by the Pensions and Lifetime Savings Association.</li>
@@ -1609,26 +1609,26 @@ h1 {
 
 <script>
 const PALETTE = ['#7F77DD','#1D9E75','#378ADD','#D85A30','#BA7517','#D4537E','#639922'];
-const STATE_PENSION = 11500;
+const STATE_PENSION = 241.30 * 52;
 const DRAWDOWN_RATE = 0.04;
 function getInflationRate() { return parseFloat(document.getElementById('inflationRate').value) / 100; }
 const INFLATION_RATE = 0.025; // default fallback
-// PLSA Retirement Living Standards (2024)
-const PLSA_MINIMUM = 13000;
-const PLSA_MODERATE = 23300;
-const PLSA_COMFORTABLE = 37300;
-const PLSA_COUPLE_MINIMUM = 19900;
-const PLSA_COUPLE_MODERATE = 34000;
-const PLSA_COUPLE_COMFORTABLE = 54500;
+// PLSA Retirement Living Standards, 2024/2025 update published June 2025
+const PLSA_MINIMUM = 13400;
+const PLSA_MODERATE = 31700;
+const PLSA_COMFORTABLE = 43900;
+const PLSA_COUPLE_MINIMUM = 21600;
+const PLSA_COUPLE_MODERATE = 43900;
+const PLSA_COUPLE_COMFORTABLE = 60600;
 
 const CGT_ALLOWANCE = 3000;
-const CGT_BASIC_RATE = 0.10;
-const CGT_HIGHER_RATE = 0.20;
+const CGT_BASIC_RATE = 0.18;
+const CGT_HIGHER_RATE = 0.24;
 
-// Income tax bands (2024/25)
+// Income tax bands (2026/27, England/Wales/NI)
 const TAX_PERSONAL_ALLOWANCE = 12570;
-const TAX_BASIC_LIMIT = 50270;
-const TAX_HIGHER_LIMIT = 125140;
+const TAX_BASIC_BAND = 37700;
+const TAX_HIGHER_BAND = 87440;
 const TAX_BASIC_RATE = 0.20;
 const TAX_HIGHER_RATE = 0.40;
 const TAX_ADDITIONAL_RATE = 0.45;
@@ -1652,14 +1652,12 @@ function calcIncomeTaxBreakdown(taxableIncome) {
   // Personal allowance
   const paUsed = Math.min(remaining, pa);
   remaining -= paUsed;
-  // Basic rate
-  const basicBand = Math.max(TAX_BASIC_LIMIT - pa, 0);
-  const basicTaxable = Math.min(remaining, basicBand);
+  // Basic rate band is fixed taxable income after allowances; it does not widen when PA tapers.
+  const basicTaxable = Math.min(remaining, TAX_BASIC_BAND);
   const basicTax = basicTaxable * TAX_BASIC_RATE;
   remaining -= basicTaxable;
   // Higher rate
-  const higherBand = TAX_HIGHER_LIMIT - TAX_BASIC_LIMIT;
-  const higherTaxable = Math.min(remaining, higherBand);
+  const higherTaxable = Math.min(remaining, TAX_HIGHER_BAND);
   const higherTax = higherTaxable * TAX_HIGHER_RATE;
   remaining -= higherTaxable;
   // Additional rate
@@ -1669,37 +1667,53 @@ function calcIncomeTaxBreakdown(taxableIncome) {
   return { pa, paUsed, tapered, basicTaxable, basicTax, higherTaxable, higherTax, additionalTaxable, additionalTax, total };
 }
 
+function calcCapitalGainsTax(gains, incomeTaxBreakdown) {
+  if (gains <= 0) return { taxableGains: 0, basicGains: 0, higherGains: 0, total: 0 };
+  const taxableGains = Math.max(gains - CGT_ALLOWANCE, 0);
+  const basicBandUsed = incomeTaxBreakdown ? incomeTaxBreakdown.basicTaxable : 0;
+  const basicBandRemaining = Math.max(TAX_BASIC_BAND - basicBandUsed, 0);
+  const basicGains = Math.min(taxableGains, basicBandRemaining);
+  const higherGains = taxableGains - basicGains;
+  const total = basicGains * CGT_BASIC_RATE + higherGains * CGT_HIGHER_RATE;
+  return { taxableGains, basicGains, higherGains, total };
+}
+
 // Calculate total tax on retirement income from all sources
 // In couple mode, split incomes by owner and tax each separately
 function calcRetirementTax(incomes, isCouple) {
   if (!isCouple) {
     let taxableIncome = 0;
-    let totalCgt = 0;
+    let giaGains = 0;
     incomes.forEach(inc => {
       if (inc.taxType === 'pension' || inc.taxType === 'state' || inc.taxType === 'db') {
         taxableIncome += inc.amount;
       } else if (inc.taxType === 'gia') {
-        totalCgt += inc.cgt || 0;
+        giaGains += inc.gain || 0;
       }
     });
     const breakdown = calcIncomeTaxBreakdown(taxableIncome);
-    return { incomeTax: breakdown.total, cgt: totalCgt, total: breakdown.total + totalCgt, taxableIncome, breakdown };
+    const cgtBreakdown = calcCapitalGainsTax(giaGains, breakdown);
+    return { incomeTax: breakdown.total, cgt: cgtBreakdown.total, total: breakdown.total + cgtBreakdown.total, taxableIncome, breakdown, cgtBreakdown };
   }
   // Couple mode: split by owner, tax each person separately
-  let yourTaxable = 0, partnerTaxable = 0, totalCgt = 0;
+  let yourTaxable = 0, partnerTaxable = 0, yourGains = 0, partnerGains = 0;
   incomes.forEach(inc => {
     const isPartner = inc.owner === 'partner';
     if (inc.taxType === 'pension' || inc.taxType === 'state' || inc.taxType === 'db') {
       if (isPartner) partnerTaxable += inc.amount;
       else yourTaxable += inc.amount;
     } else if (inc.taxType === 'gia') {
-      totalCgt += inc.cgt || 0;
+      if (isPartner) partnerGains += inc.gain || 0;
+      else yourGains += inc.gain || 0;
     }
   });
   const yourBreakdown = calcIncomeTaxBreakdown(yourTaxable);
   const partnerBreakdown = calcIncomeTaxBreakdown(partnerTaxable);
   const incomeTax = yourBreakdown.total + partnerBreakdown.total;
-  return { incomeTax, cgt: totalCgt, total: incomeTax + totalCgt, taxableIncome: yourTaxable + partnerTaxable, breakdown: yourBreakdown, partnerBreakdown, yourTaxable, partnerTaxable };
+  const yourCgtBreakdown = calcCapitalGainsTax(yourGains, yourBreakdown);
+  const partnerCgtBreakdown = calcCapitalGainsTax(partnerGains, partnerBreakdown);
+  const cgt = yourCgtBreakdown.total + partnerCgtBreakdown.total;
+  return { incomeTax, cgt, total: incomeTax + cgt, taxableIncome: yourTaxable + partnerTaxable, breakdown: yourBreakdown, partnerBreakdown, yourTaxable, partnerTaxable, cgtBreakdown: yourCgtBreakdown, partnerCgtBreakdown };
 }
 
 function futureStatePension(years) {
@@ -1763,6 +1777,14 @@ const totalsRow = document.getElementById('totalsRow');
 const salaryInput = document.getElementById('salary');
 
 // ── Helpers ──
+function isCoupleMode() {
+  return document.getElementById('coupleToggle').checked;
+}
+
+function getCalculationPots() {
+  return isCoupleMode() ? pots : pots.filter(pot => pot.owner !== 'partner');
+}
+
 function fmt(n) {
   return '£' + Math.round(n).toLocaleString('en-GB');
 }
@@ -1953,18 +1975,25 @@ function isTaxFree(type) {
   return type === 'isa' || type === 'cash-isa' || type === 'lisa' || type === 'cash-lisa' || type === 'premium-bonds';
 }
 
-// CGT helper for GIA pots: estimate tax on annual drawdown gains
-function getGiaCgtOnDrawdown(pot, years, rate) {
+// CGT helper for GIA pots: estimate the gain contained in an annual withdrawal.
+function getGiaGainsOnWithdrawal(pot, years, rate, withdrawalRate) {
   if (pot.type !== 'gia') return 0;
   const projected = projectPot(pot, years, rate);
   const totalContribs = pot.value + getTotalContributions(pot, years);
   if (projected <= 0 || totalContribs >= projected) return 0;
   const gainsPct = (projected - totalContribs) / projected;
-  const annualWithdrawal = projected * DRAWDOWN_RATE;
-  const gainsInWithdrawal = annualWithdrawal * gainsPct;
-  const taxableGains = Math.max(gainsInWithdrawal - CGT_ALLOWANCE, 0);
-  // Use higher rate as conservative estimate (most retirees with significant GIA are higher rate)
-  return taxableGains * CGT_HIGHER_RATE;
+  const annualWithdrawal = projected * withdrawalRate;
+  return annualWithdrawal * gainsPct;
+}
+
+function getGiaCgtOnDrawdown(pot, years, rate) {
+  const gains = getGiaGainsOnWithdrawal(pot, years, rate, DRAWDOWN_RATE);
+  return calcCapitalGainsTax(gains, calcIncomeTaxBreakdown(0)).total;
+}
+
+function projectDbIncome(pot, years) {
+  const income = pot.dbIncome || 0;
+  return pot.dbInflationLinked ? income * Math.pow(1 + INFLATION_RATE, years) : income;
 }
 
 // ── Render pot cards ──
@@ -2545,18 +2574,20 @@ function updateChart() {
   if (typeof Chart === 'undefined') return;
   const { currentAge, retireAge, rate } = getInputs();
   const years = Math.max(retireAge - currentAge, 1);
+  const calcPots = getCalculationPots();
   const labels = [];
   for (let y = 0; y <= years; y++) labels.push(currentAge + y);
 
-  const dcPots = pots.filter(p => p.type !== 'db-pension');
-  const dcIndexes = pots.map((p, i) => p.type !== 'db-pension' ? i : -1).filter(i => i >= 0);
-  const allYearData = dcPots.map(pot => projectPotByYear(pot, years, rate));
+  const dcEntries = calcPots
+    .map(pot => ({ pot, index: pots.indexOf(pot) }))
+    .filter(entry => entry.pot.type !== 'db-pension');
+  const allYearData = dcEntries.map(entry => projectPotByYear(entry.pot, getYearsForPot(entry.pot, years), rate));
 
   const datasets = allYearData.map((data, di) => {
-    const i = dcIndexes[di];
+    const { pot, index: i } = dcEntries[di];
     const color = PALETTE[i % PALETTE.length];
     return {
-      label: pots[i].name,
+      label: pot.name,
       data,
       backgroundColor: color + '33',
       borderColor: color,
@@ -2569,7 +2600,7 @@ function updateChart() {
 
   // Add total line if more than one pot and toggle is on
   const showTotal = document.getElementById('showTotalLine').checked;
-  if (dcPots.length > 1 && showTotal) {
+  if (dcEntries.length > 1 && showTotal) {
     const totalData = allYearData[0].map((_, yi) => allYearData.reduce((sum, d) => sum + d[yi], 0));
     datasets.push({
       label: 'Total',
@@ -2628,7 +2659,9 @@ function updateChart() {
 
 // ── Legend ──
 function updateLegend() {
-  let html = pots.map((pot, i) => {
+  const calcPots = getCalculationPots();
+  let html = calcPots.map((pot) => {
+    const i = pots.indexOf(pot);
     if (pot.type === 'db-pension') return '';
     return `
     <div class="legend-item">
@@ -2637,7 +2670,7 @@ function updateLegend() {
     </div>
   `;
   }).join('');
-  if (pots.length > 1 && document.getElementById('showTotalLine').checked) {
+  if (calcPots.filter(p => p.type !== 'db-pension').length > 1 && document.getElementById('showTotalLine').checked) {
     html += `<div class="legend-item">
       <div class="legend-swatch" style="background:${getComputedStyle(document.body).getPropertyValue('--color-text-primary').trim()};opacity:0.6"></div>
       Total
@@ -2650,6 +2683,7 @@ function updateLegend() {
 function updateSummary() {
   const { currentAge, retireAge, rate } = getInputs();
   const years = Math.max(retireAge - currentAge, 1);
+  const calcPots = getCalculationPots();
   const showLump = document.getElementById('lumpSumToggle').checked;
   const deflator = Math.pow(1 + getInflationRate(), years);
 
@@ -2658,15 +2692,16 @@ function updateSummary() {
   function renderSummaryCard(pot, i) {
     const color = PALETTE[i % PALETTE.length];
     if (pot.type === 'db-pension') {
-      const income = pot.dbIncome || 0;
+      const potYears = getYearsForPot(pot, years);
+      const income = projectDbIncome(pot, potYears);
       return `
         <div class="summary-card">
           <div class="summary-card-header">
             <div class="summary-card-swatch" style="background:${color}"></div>
             <div class="summary-card-name">${escapeHTML(pot.name)}</div>
           </div>
-          <div class="summary-card-projected">${fmt(income)}/yr</div>
-          <div class="summary-card-start">Guaranteed defined benefit income</div>
+          <div class="summary-card-projected">${fmtR(income, deflator)}/yr${realLabel()}</div>
+          <div class="summary-card-start">Entered income: ${fmt(pot.dbIncome || 0)}/yr</div>
           <div class="summary-card-drawdown" style="color:var(--color-text-secondary)">${pot.dbInflationLinked ? 'Inflation-linked' : 'Not inflation-linked'}</div>
         </div>
       `;
@@ -2703,8 +2738,8 @@ function updateSummary() {
 
   let cardsHTML = '';
   if (isCouple) {
-    const yourPots = pots.filter(p => p.owner !== 'partner');
-    const partnerPots = pots.filter(p => p.owner === 'partner');
+    const yourPots = calcPots.filter(p => p.owner !== 'partner');
+    const partnerPots = calcPots.filter(p => p.owner === 'partner');
     if (yourPots.length) {
       cardsHTML += `<div class="owner-group-label you">Your pots</div>`;
       cardsHTML += yourPots.map(p => renderSummaryCard(p, pots.indexOf(p))).join('');
@@ -2714,7 +2749,7 @@ function updateSummary() {
       cardsHTML += partnerPots.map(p => renderSummaryCard(p, pots.indexOf(p))).join('');
     }
   } else {
-    cardsHTML = pots.map((pot, i) => renderSummaryCard(pot, i)).join('');
+    cardsHTML = calcPots.map(pot => renderSummaryCard(pot, pots.indexOf(pot))).join('');
   }
 
   cardsHTML += `
@@ -2737,13 +2772,14 @@ function updateSummary() {
 function updateTotals() {
   const { currentAge, retireAge, rate } = getInputs();
   const years = Math.max(retireAge - currentAge, 1);
+  const calcPots = getCalculationPots();
 
   let totalProjected = 0;
   let totalMonthlyContrib = 0;
   let totalDbIncome = 0;
-  pots.forEach(pot => {
+  calcPots.forEach(pot => {
     if (pot.type === 'db-pension') {
-      totalDbIncome += pot.dbIncome || 0;
+      totalDbIncome += projectDbIncome(pot, getYearsForPot(pot, years));
       return;
     }
     const potYears = getYearsForPot(pot, years);
@@ -2754,7 +2790,7 @@ function updateTotals() {
   const showLump = document.getElementById('lumpSumToggle').checked;
   let lumpTotal = 0;
   if (showLump) {
-    pots.forEach(pot => {
+    calcPots.forEach(pot => {
       if (isPensionType(pot.type)) lumpTotal += projectPot(pot, getYearsForPot(pot, years), rate) * 0.25;
     });
   }
@@ -2772,10 +2808,10 @@ function updateTotals() {
   // Tax calculation for totals
   const isCouple = document.getElementById('coupleToggle').checked;
   const taxIncomes = [];
-  pots.forEach(pot => {
+  calcPots.forEach(pot => {
     const owner = pot.owner || 'you';
     if (pot.type === 'db-pension') {
-      taxIncomes.push({ amount: pot.dbIncome || 0, taxType: 'db', owner });
+      taxIncomes.push({ amount: projectDbIncome(pot, getYearsForPot(pot, years)), taxType: 'db', owner });
       return;
     }
     const potYears = getYearsForPot(pot, years);
@@ -2784,7 +2820,7 @@ function updateTotals() {
     const base = takeLump ? proj * 0.75 : proj;
     const inc = base * DRAWDOWN_RATE;
     if (isPensionType(pot.type)) taxIncomes.push({ amount: inc, taxType: 'pension', owner });
-    else if (pot.type === 'gia') taxIncomes.push({ amount: inc, taxType: 'gia', cgt: getGiaCgtOnDrawdown(pot, potYears, rate), owner });
+    else if (pot.type === 'gia') taxIncomes.push({ amount: inc, taxType: 'gia', gain: getGiaGainsOnWithdrawal(pot, potYears, rate, DRAWDOWN_RATE), owner });
     else taxIncomes.push({ amount: inc, taxType: 'isa', owner });
   });
   taxIncomes.push({ amount: futureSP, taxType: 'state', owner: 'you' });
@@ -2913,12 +2949,13 @@ function renderTaxBreakdownMaths(taxResult, isCouple) {
 function updateTabs() {
   const { currentAge, retireAge, rate } = getInputs();
   const years = Math.max(retireAge - currentAge, 1);
+  const calcPots = getCalculationPots();
 
-  const projected = pots.map(pot => pot.type === 'db-pension' ? 0 : projectPot(pot, getYearsForPot(pot, years), rate));
+  const projected = calcPots.map(pot => pot.type === 'db-pension' ? 0 : projectPot(pot, getYearsForPot(pot, years), rate));
   const totalProjected = projected.reduce((a, b) => a + b, 0);
   const deflator = Math.pow(1 + getInflationRate(), years);
   let tabDbIncome = 0;
-  pots.forEach(pot => { if (pot.type === 'db-pension') tabDbIncome += pot.dbIncome || 0; });
+  calcPots.forEach(pot => { if (pot.type === 'db-pension') tabDbIncome += projectDbIncome(pot, getYearsForPot(pot, years)); });
 
   // ── Drawdown tab ──
   const showLump = document.getElementById('lumpSumToggle').checked;
@@ -2926,9 +2963,9 @@ function updateTabs() {
   let totalLumpSum = 0;
 
   const tabDeflator = deflator;
-  const drawdownItems = pots.map((pot, i) => {
+  const drawdownItems = calcPots.map((pot, i) => {
     if (pot.type === 'db-pension') {
-      const income = pot.dbIncome || 0;
+      const income = projectDbIncome(pot, getYearsForPot(pot, years));
       return `
         <div class="income-item">
           <div class="income-item-label">${escapeHTML(pot.name)}</div>
@@ -2952,7 +2989,7 @@ function updateTabs() {
     let note = '';
     if (isTaxFree(pot.type)) note = '<div class="income-item-note">Tax-free</div>';
     else if (pot.type === 'gia') {
-      const cgt = getGiaCgtOnDrawdown(pot, years, rate);
+      const cgt = getGiaCgtOnDrawdown(pot, getYearsForPot(pot, years), rate);
       note = `<div class="income-item-note">Subject to CGT on gains${cgt > 0 ? ' (~' + fmt(cgt) + '/yr)' : ''}</div>`;
     } else if (isPensionType(pot.type)) {
       note = note || '<div class="income-item-note">Taxed as income</div>';
@@ -2965,27 +3002,27 @@ function updateTabs() {
       </div>
     `;
   });
-  const drawdownItemsHTML = groupByOwner(drawdownItems, pots, tabIsCouple);
+  const drawdownItemsHTML = groupByOwner(drawdownItems, calcPots, tabIsCouple);
 
   const adjustedTotal = showLump ? totalProjected - totalLumpSum : totalProjected;
   const drawdownTotal = adjustedTotal * DRAWDOWN_RATE;
   const tabFutureSP = futureStatePension(years);
   const tabStatePensionTotal = tabIsCouple ? tabFutureSP * 2 : tabFutureSP;
   const drawdownPlusState = drawdownTotal + tabStatePensionTotal + tabDbIncome;
-  const tabHasPensions = pots.some(p => isPensionType(p.type));
+  const tabHasPensions = calcPots.some(p => isPensionType(p.type));
   const tabLumpVis = showLump && totalLumpSum > 0 ? '' : 'visibility:hidden';
   const lumpSumNote = tabHasPensions ? `<div class="total-sub" style="${tabLumpVis}">Plus ${fmt(totalLumpSum)} tax-free lump sum</div>` : '';
 
   // Tax calc for drawdown tab
   const drawdownTaxIncomes = [];
-  pots.forEach((pot, i) => {
+  calcPots.forEach((pot, i) => {
     const owner = pot.owner || 'you';
-    if (pot.type === 'db-pension') { drawdownTaxIncomes.push({ amount: pot.dbIncome || 0, taxType: 'db', owner }); return; }
+    if (pot.type === 'db-pension') { drawdownTaxIncomes.push({ amount: projectDbIncome(pot, getYearsForPot(pot, years)), taxType: 'db', owner }); return; }
     let val = projected[i];
     if (showLump && isPensionType(pot.type)) val *= 0.75;
     const inc = val * DRAWDOWN_RATE;
     if (isPensionType(pot.type)) drawdownTaxIncomes.push({ amount: inc, taxType: 'pension', owner });
-    else if (pot.type === 'gia') drawdownTaxIncomes.push({ amount: inc, taxType: 'gia', cgt: getGiaCgtOnDrawdown(pot, getYearsForPot(pot, years), rate), owner });
+    else if (pot.type === 'gia') drawdownTaxIncomes.push({ amount: inc, taxType: 'gia', gain: getGiaGainsOnWithdrawal(pot, getYearsForPot(pot, years), rate, DRAWDOWN_RATE), owner });
     else drawdownTaxIncomes.push({ amount: inc, taxType: 'isa', owner });
   });
   drawdownTaxIncomes.push({ amount: tabFutureSP, taxType: 'state', owner: 'you' });
@@ -3016,13 +3053,13 @@ function updateTabs() {
         <div class="total-sub">Income tax ${fmt(drawdownTax.incomeTax)}${drawdownTax.cgt > 0 ? ' + CGT ' + fmt(drawdownTax.cgt) : ''}</div>
       </div>
     </div>
-    <p class="tab-note">Drawdown withdraws 4% of your pot each year, leaving the remainder invested. Income varies with market performance but preserves capital. Tax estimate uses 2024/25 bands and assumes no other income.</p>
+    <p class="tab-note">Drawdown withdraws 4% of your pot each year, leaving the remainder invested. Income varies with market performance but preserves capital. Tax estimate uses 2026/27 bands and assumes no other income.</p>
     <details class="show-maths">
       <summary>Show the working</summary>
       <div class="show-maths-content">
         <div class="maths-heading">How drawdown income is calculated</div>
-        ${pots.filter(p => p.type !== 'db-pension').map((pot, i) => {
-          const idx = pots.indexOf(pot);
+        ${calcPots.filter(p => p.type !== 'db-pension').map((pot, i) => {
+          const idx = calcPots.indexOf(pot);
           let val = projected[idx];
           const takeLump = showLump && isPensionType(pot.type);
           const lumpAmt = takeLump ? val * 0.25 : 0;
@@ -3030,10 +3067,10 @@ function updateTabs() {
           const inc = base * DRAWDOWN_RATE;
           return `<div class="maths-row"><span class="maths-label">${escapeHTML(pot.name)}: ${fmtR(val, tabDeflator)} pot${takeLump ? ' &minus; ' + fmtR(lumpAmt, tabDeflator) + ' lump sum = ' + fmtR(base, tabDeflator) : ''} &times; 4%</span><span class="maths-value">${fmtR(inc, tabDeflator)}/yr</span></div>`;
         }).join('')}
-        ${pots.filter(p => p.type === 'db-pension').map(pot => `<div class="maths-row"><span class="maths-label">${escapeHTML(pot.name)} (DB guaranteed)</span><span class="maths-value">${fmtR(pot.dbIncome || 0, tabDeflator)}/yr</span></div>`).join('')}
+        ${calcPots.filter(p => p.type === 'db-pension').map(pot => `<div class="maths-row"><span class="maths-label">${escapeHTML(pot.name)} (DB guaranteed)</span><span class="maths-value">${fmtR(projectDbIncome(pot, getYearsForPot(pot, years)), tabDeflator)}/yr</span></div>`).join('')}
         <div class="maths-row"><span class="maths-label">State pension${tabIsCouple ? ' (&times;2)' : ''}</span><span class="maths-value">${fmtR(tabStatePensionTotal, tabDeflator)}/yr</span></div>
         <div class="maths-row total"><span class="maths-label">Total gross income</span><span class="maths-value">${fmtR(drawdownPlusState, tabDeflator)}/yr</span></div>
-        <div class="maths-heading">Tax calculation (2024/25 bands)</div>
+        <div class="maths-heading">Tax calculation (2026/27 bands)</div>
         ${renderTaxBreakdownMaths(drawdownTax, tabIsCouple)}
         ${drawdownTax.cgt > 0 ? `<div class="maths-row"><span class="maths-label">GIA capital gains tax</span><span class="maths-value">${fmt(drawdownTax.cgt)}</span></div>` : ''}
         <div class="maths-row total"><span class="maths-label">Total tax</span><span class="maths-value">${fmt(drawdownTax.total)}</span></div>
@@ -3046,9 +3083,9 @@ function updateTabs() {
   // ── Annuity tab ──
   let annuityTotal = tabStatePensionTotal + tabDbIncome;
   let annuityLumpTotal = 0;
-  const annuityItems = pots.map((pot, i) => {
+  const annuityItems = calcPots.map((pot, i) => {
     if (pot.type === 'db-pension') {
-      const income = pot.dbIncome || 0;
+      const income = projectDbIncome(pot, getYearsForPot(pot, years));
       return `
         <div class="income-item">
           <div class="income-item-label">${escapeHTML(pot.name)}</div>
@@ -3076,20 +3113,20 @@ function updateTabs() {
       </div>
     `;
   });
-  const annuityItemsHTML = groupByOwner(annuityItems, pots, tabIsCouple);
+  const annuityItemsHTML = groupByOwner(annuityItems, calcPots, tabIsCouple);
 
   const annuityLumpNote = showLump && annuityLumpTotal > 0 ? `<div class="total-sub">Plus ${fmt(annuityLumpTotal)} tax-free lump sum</div>` : '';
 
   // Tax calc for annuity tab
   const annuityTaxIncomes = [];
-  pots.forEach((pot, i) => {
+  calcPots.forEach((pot, i) => {
     const owner = pot.owner || 'you';
-    if (pot.type === 'db-pension') { annuityTaxIncomes.push({ amount: pot.dbIncome || 0, taxType: 'db', owner }); return; }
+    if (pot.type === 'db-pension') { annuityTaxIncomes.push({ amount: projectDbIncome(pot, getYearsForPot(pot, years)), taxType: 'db', owner }); return; }
     let val = projected[i];
     if (showLump && isPensionType(pot.type)) val *= 0.75;
     const inc = val * getAnnuityRate(pot.type);
     if (isPensionType(pot.type)) annuityTaxIncomes.push({ amount: inc, taxType: 'pension', owner });
-    else if (pot.type === 'gia') annuityTaxIncomes.push({ amount: inc, taxType: 'gia', cgt: getGiaCgtOnDrawdown(pot, getYearsForPot(pot, years), rate), owner });
+    else if (pot.type === 'gia') annuityTaxIncomes.push({ amount: inc, taxType: 'gia', gain: getGiaGainsOnWithdrawal(pot, getYearsForPot(pot, years), rate, getAnnuityRate(pot.type)), owner });
     else annuityTaxIncomes.push({ amount: inc, taxType: 'isa', owner });
   });
   annuityTaxIncomes.push({ amount: tabFutureSP, taxType: 'state', owner: 'you' });
@@ -3126,8 +3163,8 @@ function updateTabs() {
       <div class="show-maths-content">
         <div class="maths-heading">How annuity income is calculated</div>
         <div class="maths-note" style="margin-top:0;margin-bottom:6px">You hand over your entire pot to an insurance company in exchange for a guaranteed income for life. The annuity rate depends on your age, health, and market conditions. We use illustrative rates:</div>
-        ${pots.filter(p => p.type !== 'db-pension').map((pot, i) => {
-          const idx = pots.indexOf(pot);
+        ${calcPots.filter(p => p.type !== 'db-pension').map((pot, i) => {
+          const idx = calcPots.indexOf(pot);
           let val = projected[idx];
           const takeLump = showLump && isPensionType(pot.type);
           const lumpAmt = takeLump ? val * 0.25 : 0;
@@ -3136,7 +3173,7 @@ function updateTabs() {
           const inc = base * aRate;
           return `<div class="maths-row"><span class="maths-label">${escapeHTML(pot.name)}: ${fmtR(base, tabDeflator)} &times; ${Math.round(aRate * 100)}% annuity rate</span><span class="maths-value">${fmtR(inc, tabDeflator)}/yr</span></div>`;
         }).join('')}
-        ${pots.filter(p => p.type === 'db-pension').map(pot => `<div class="maths-row"><span class="maths-label">${escapeHTML(pot.name)} (DB guaranteed)</span><span class="maths-value">${fmtR(pot.dbIncome || 0, tabDeflator)}/yr</span></div>`).join('')}
+        ${calcPots.filter(p => p.type === 'db-pension').map(pot => `<div class="maths-row"><span class="maths-label">${escapeHTML(pot.name)} (DB guaranteed)</span><span class="maths-value">${fmtR(projectDbIncome(pot, getYearsForPot(pot, years)), tabDeflator)}/yr</span></div>`).join('')}
         <div class="maths-row"><span class="maths-label">State pension${tabIsCouple ? ' (&times;2)' : ''}</span><span class="maths-value">${fmtR(tabStatePensionTotal, tabDeflator)}/yr</span></div>
         <div class="maths-row total"><span class="maths-label">Total gross income</span><span class="maths-value">${fmtR(annuityTotal, tabDeflator)}/yr</span></div>
         <div class="maths-heading">Why annuity rates are higher than drawdown</div>
@@ -3443,7 +3480,7 @@ salaryInput.addEventListener('input', e => {
 
 // ── Update helpers ──
 function updateEmptyState() {
-  const empty = pots.length === 0;
+  const empty = getCalculationPots().length === 0;
   document.getElementById('emptyState').style.display = empty ? '' : 'none';
   document.getElementById('resultsSection').style.display = empty ? 'none' : '';
   document.getElementById('pdfBtnWrap').style.display = empty ? 'none' : '';
@@ -3465,7 +3502,7 @@ function updateContribEquiv() {
 
 function updateWithoutRerender() {
   updateEmptyState();
-  if (pots.length === 0) { saveState(); return; }
+  if (getCalculationPots().length === 0) { saveState(); return; }
   updateContribEquiv();
   updateChart();
   updateLegend();
@@ -3478,7 +3515,7 @@ function updateWithoutRerender() {
 function updateAll() {
   renderPots();
   updateEmptyState();
-  if (pots.length === 0) { saveState(); return; }
+  if (getCalculationPots().length === 0) { saveState(); return; }
   updateChart();
   updateLegend();
   updateSummary();
@@ -3578,13 +3615,14 @@ function generatePDF() {
   const partnerYears = Math.max(partnerRetireAge - partnerAge, 1);
   const statePensionTotal = pdfIsCouple ? futureSP * 2 : futureSP;
 
-  const yourPots = pots.filter(p => p.owner !== 'partner');
-  const partnerPots = pots.filter(p => p.owner === 'partner');
-  const dcPots = pots.filter(p => p.type !== 'db-pension');
-  const dbPots = pots.filter(p => p.type === 'db-pension');
-  const hasLisas = pots.some(p => isLisa(p.type));
+  const pdfPots = pdfIsCouple ? pots : pots.filter(p => p.owner !== 'partner');
+  const yourPots = pdfPots.filter(p => p.owner !== 'partner');
+  const partnerPots = pdfPots.filter(p => p.owner === 'partner');
+  const dcPots = pdfPots.filter(p => p.type !== 'db-pension');
+  const dbPots = pdfPots.filter(p => p.type === 'db-pension');
+  const hasLisas = pdfPots.some(p => isLisa(p.type));
   const hasDB = dbPots.length > 0;
-  const hasPensions = pots.some(p => isPensionType(p.type));
+  const hasPensions = pdfPots.some(p => isPensionType(p.type));
 
   // Helpers
   const fmtPdf = n => '£' + Math.round(n).toLocaleString('en-GB');
@@ -3803,8 +3841,8 @@ function generatePDF() {
     const dbHead = [['Scheme name', 'Annual income', 'Monthly income', 'Inflation-linked']];
     const dbBody = dbList.map(pot => [
       pot.name,
-      fmtPdf(pot.dbIncome || 0) + '/yr',
-      fmtPdf((pot.dbIncome || 0) / 12) + '/mo',
+      fmtPdf(projectDbIncome(pot, getYearsForPot(pot, years))) + '/yr',
+      fmtPdf(projectDbIncome(pot, getYearsForPot(pot, years)) / 12) + '/mo',
       pot.dbInflationLinked ? 'Yes' : 'No'
     ]);
 
@@ -3851,8 +3889,8 @@ function generatePDF() {
     flowBlock(22, () => {});
     y += 4;
     let totalLump = 0;
-    pots.forEach(pot => {
-      if (isPensionType(pot.type)) totalLump += projectPot(pot, years, rate) * 0.25;
+    pdfPots.forEach(pot => {
+      if (isPensionType(pot.type)) totalLump += projectPot(pot, getYearsForPot(pot, years), rate) * 0.25;
     });
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
@@ -3872,7 +3910,7 @@ function generatePDF() {
   // Helper: compute income totals for a given lump sum scenario
   function computeIncome(withLump) {
     let drawdown = 0, annuity = 0, lump = 0, dbInc = 0;
-    dbPots.forEach(pot => { dbInc += pot.dbIncome || 0; });
+    dbPots.forEach(pot => { dbInc += projectDbIncome(pot, getYearsForPot(pot, years)); });
     const rows = dcPots.map(pot => {
       const yrs = pot.owner === 'partner' ? partnerYears : years;
       const projected = projectPot(pot, yrs, rate);
@@ -3905,13 +3943,13 @@ function generatePDF() {
       if (yourRows.length || yourDb.length) {
         rows.push([{ content: 'YOUR INCOME', colSpan: 6, styles: { fontStyle: 'bold', fillColor: [240, 248, 243], textColor: [29, 158, 117] } }]);
         yourRows.forEach(r => rows.push([r.name, potTypeLabel(r.type), fmtPdf(r.projected), fmtPdf(r.dInc) + '/yr', getAnnuityLabel(r.type), fmtPdf(r.aInc) + '/yr']));
-        yourDb.forEach(pot => { const inc = pot.dbIncome || 0; rows.push([pot.name, 'DB Pension', 'N/A', fmtPdf(inc) + '/yr', 'N/A', fmtPdf(inc) + '/yr']); });
+        yourDb.forEach(pot => { const inc = projectDbIncome(pot, getYearsForPot(pot, years)); rows.push([pot.name, 'DB Pension', 'N/A', fmtPdf(inc) + '/yr', 'N/A', fmtPdf(inc) + '/yr']); });
         rows.push(['Your state pension', '', 'N/A', fmtPdf(futureSP) + '/yr', '', fmtPdf(futureSP) + '/yr']);
       }
       if (partnerRows.length || partnerDb.length) {
         rows.push([{ content: "PARTNER'S INCOME", colSpan: 6, styles: { fontStyle: 'bold', fillColor: [243, 240, 255], textColor: [127, 119, 221] } }]);
         partnerRows.forEach(r => rows.push([r.name, potTypeLabel(r.type), fmtPdf(r.projected), fmtPdf(r.dInc) + '/yr', getAnnuityLabel(r.type), fmtPdf(r.aInc) + '/yr']));
-        partnerDb.forEach(pot => { const inc = pot.dbIncome || 0; rows.push([pot.name, 'DB Pension', 'N/A', fmtPdf(inc) + '/yr', 'N/A', fmtPdf(inc) + '/yr']); });
+        partnerDb.forEach(pot => { const inc = projectDbIncome(pot, getYearsForPot(pot, years)); rows.push([pot.name, 'DB Pension', 'N/A', fmtPdf(inc) + '/yr', 'N/A', fmtPdf(inc) + '/yr']); });
         rows.push(["Partner's state pension", '', 'N/A', fmtPdf(futureSP) + '/yr', '', fmtPdf(futureSP) + '/yr']);
       }
     } else {
@@ -3919,7 +3957,7 @@ function generatePDF() {
         rows.push([r.name, potTypeLabel(r.type), fmtPdf(r.projected), fmtPdf(r.dInc) + '/yr', getAnnuityLabel(r.type), fmtPdf(r.aInc) + '/yr']);
       });
       dbPots.forEach(pot => {
-        const inc = pot.dbIncome || 0;
+        const inc = projectDbIncome(pot, getYearsForPot(pot, years));
         rows.push([pot.name, 'DB Pension', 'N/A', fmtPdf(inc) + '/yr', 'N/A', fmtPdf(inc) + '/yr']);
       });
       rows.push(['State Pension', '', 'N/A', fmtPdf(futureSP) + '/yr', '', fmtPdf(futureSP) + '/yr']);
@@ -4085,7 +4123,7 @@ function generatePDF() {
   );
 
   y = explainBlock(doc, y, 'State pension',
-    'The full new State Pension is currently ' + fmtPdf(STATE_PENSION) + '/yr (2024/25). You need 35 qualifying years of National Insurance contributions ' +
+    'The full new State Pension is currently ' + fmtPdf(STATE_PENSION) + '/yr (2026/27). You need 35 qualifying years of National Insurance contributions ' +
     'to get the full amount. This report inflates the state pension by ' + (getInflationRate()*100).toFixed(1) + '%/yr to match the nominal terms used for pot projections. ' +
     'In reality, the State Pension rises by the triple lock — the highest of inflation (CPI), average earnings growth, or 2.5%.'
   );
@@ -4131,10 +4169,10 @@ function generatePDF() {
   const disclaimers = [
     'This report is for illustration only and does not constitute financial advice.',
     'All projections assume constant growth rates and contribution levels, which will not reflect reality.',
-    'Tax estimates use 2024/25 income tax bands and CGT rates. They assume no other income in retirement. Personal allowance taper above £100k is modelled. Actual tax depends on your full circumstances.',
+    'Tax estimates use 2026/27 income tax bands and CGT rates. They assume no other income in retirement. Personal allowance taper above £100k is modelled. Actual tax depends on your full circumstances.',
     'Annuity income is fixed (level, non-escalating) and loses buying power to inflation every year. Drawdown income can grow if your pot stays invested. Comparing year-1 figures alone is misleading.',
     'Annuity rates are illustrative. Actual rates depend on age, health, market conditions, and provider.',
-    'GIA withdrawals are subject to Capital Gains Tax on the gains portion. The £3,000 annual CGT allowance and 20% higher rate are used as a conservative estimate.',
+    'GIA withdrawals are subject to Capital Gains Tax on the gains portion. The £3,000 annual CGT allowance and 18%/24% rates are used based on your remaining basic-rate band.',
     'LISA withdrawals before age 60 may incur a 25% government penalty.',
     'Premium Bonds returns are based on the NS&I prize fund rate — actual returns are probabilistic and may be zero.',
     'The 4% withdrawal rule is based on historical US equity/bond returns and is not guaranteed for the future.',

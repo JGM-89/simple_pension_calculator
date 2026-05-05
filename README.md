@@ -8,7 +8,7 @@ A free, private UK retirement planning calculator that runs entirely in your bro
 
 - **9 pot types** — Pensions, SIPPs, S&S ISAs, GIAs, Cash ISAs, S&S LISAs, Cash LISAs, Premium Bonds, and Defined Benefit pensions. All fields (contributions, rates, DB calculator) available from the add form — no need to save first
 - **Couple mode** — Plan for two people with separate ages, salaries, and pot ownership in dedicated sections
-- **Tax modelling** — Estimated income tax (2024/25 bands with personal allowance taper) and CGT on GIA withdrawals, with full band-by-band "show the working" breakdowns
+- **Tax modelling** — Estimated income tax (2026/27 bands with personal allowance taper) and CGT on GIA withdrawals, with full band-by-band "show the working" breakdowns
 - **LISA government bonus** — 25% bonus on contributions up to £4,000/yr, automatically stops at age 50
 - **Defined benefit pensions** — Model guaranteed income from DB schemes (e.g. NHS, Teachers', Civil Service) with optional inflation linking and a service-years helper calculator
 - **Flexible contributions** — Switch between £/month and % of salary for workplace pensions; employer and employee contributions shown separately. SIPPs have a simple personal contribution field
@@ -31,11 +31,11 @@ All calculations run client-side in your browser. No data is sent to any server.
 
 - Default growth rate of 5% assumes a broad global equity tracker fund (e.g. FTSE Global All Cap). This is a nominal return before inflation
 - Inflation modelled at 2.5% per year
-- State pension shown at current full rate of £11,500/yr, projected forward at 2.5% inflation (triple lock) — no real-terms growth assumed
+- State pension shown at current full rate of £12,548/yr, projected forward at 2.5% inflation (triple lock) — no real-terms growth assumed
 - Drawdown uses the 4% withdrawal rule
 - Annuity rates are illustrative (5% pension/SIPP, 4% ISA/LISA, 3% cash/bonds) — level (non-escalating), so income erodes with inflation
-- Tax estimates use 2024/25 income tax bands and CGT rates; personal allowance taper above £100k is modelled
-- GIA withdrawals taxed using £3,000 CGT allowance and 20% higher rate as a conservative estimate
+- Tax estimates use 2026/27 income tax bands and CGT rates; personal allowance taper above £100k is modelled
+- GIA withdrawals taxed using the £3,000 CGT allowance and 18%/24% rates based on remaining basic-rate band
 - In couple mode, each person's income is taxed independently
 - LISA contributions capped at £4,000/yr with 25% government bonus; bonus stops at age 50
 - Premium Bonds use the NS&I prize fund rate as expected return — actual returns are probabilistic
