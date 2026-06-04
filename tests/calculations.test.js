@@ -21,6 +21,7 @@ function createContext(overrides = {}) {
     coupleToggle: { checked: false },
     inflationToggle: { checked: false },
     annualRate: { value: '5' },
+    inflationRate: { value: '2.5' },
     currentAge: { value: '40' },
     retireAge: { value: '67' },
     partnerAge: { value: '40' },
@@ -147,6 +148,14 @@ test('inflation-linked DB income projects while level DB income stays flat', () 
 
   approx(result.linked, 12800.85, 'inflation-linked DB');
   approx(result.level, 10000, 'level DB');
+});
+
+test('inflation-linked DB income follows the inflation slider, not a fixed 2.5%', () => {
+  const result = run(`
+    return projectDbIncome({ dbIncome: 10000, dbInflationLinked: true }, 10);
+  `, { inflationRate: { value: '5' } }).result;
+  // 10000 * 1.05^10 = 16288.95 — must track the slider, not 2.5%
+  approx(result, 16288.95, 'DB income at 5% inflation');
 });
 
 test('single mode excludes partner pots from calculation set', () => {

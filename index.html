@@ -1993,7 +1993,7 @@ function getGiaCgtOnDrawdown(pot, years, rate) {
 
 function projectDbIncome(pot, years) {
   const income = pot.dbIncome || 0;
-  return pot.dbInflationLinked ? income * Math.pow(1 + INFLATION_RATE, years) : income;
+  return pot.dbInflationLinked ? income * Math.pow(1 + getInflationRate(), years) : income;
 }
 
 // ── Render pot cards ──
@@ -2074,7 +2074,9 @@ function renderPots() {
     if (isPension) {
       const salaryEl = isPartnerPot ? document.getElementById('partnerSalary') : salaryInput;
       const salary = parseFloat(salaryEl.dataset.raw) || 0;
-      const monthlyEquiv = isPct ? fmt(((pot.employeeContrib + pot.employerContrib) / 100) * salary / 12) + '/mo' : '';
+      const contribPct = pot.employeeContrib + pot.employerContrib;
+      const salaryMissing = isPct && salary <= 0 && contribPct > 0;
+      const monthlyEquiv = isPct ? fmt((contribPct / 100) * salary / 12) + '/mo' : '';
       contribHTML = `
         <label class="pot-value-label" style="margin-top:8px">Monthly contributions</label>
         <div class="contrib-mode-toggle" data-index="${i}">
@@ -2091,7 +2093,9 @@ function renderPots() {
             <input type="number" min="0" step="${isPct ? '0.5' : '1'}" value="${pot.employerContrib}" data-index="${i}" class="employer-contrib-input">
           </div>
         </div>
-        ${isPct && monthlyEquiv ? `<div class="contrib-equiv" data-index="${i}">= ${monthlyEquiv}</div>` : ''}
+        ${salaryMissing
+          ? `<div class="contrib-equiv" data-index="${i}" style="color:#e6a23c">⚠ Enter your salary above to apply these % contributions</div>`
+          : (isPct && monthlyEquiv ? `<div class="contrib-equiv" data-index="${i}">= ${monthlyEquiv}</div>` : '')}
       `;
     } else {
       const lisaMax = isLisa(pot.type) ? Math.floor(LISA_ANNUAL_CAP / 12) : '';
@@ -2201,9 +2205,9 @@ function renderPots() {
     toggle.querySelectorAll('.contrib-mode-btn').forEach(btn => {
       btn.addEventListener('click', e => {
         const idx = toggle.dataset.index;
+        // Keep the entered numbers and reinterpret the unit (e.g. £7+£7 → 7%+7%),
+        // rather than wiping the user's input on every unit switch.
         pots[idx].contribMode = e.target.dataset.mode;
-        pots[idx].employeeContrib = 0;
-        pots[idx].employerContrib = 0;
         updateAll();
       });
     });
@@ -2221,8 +2225,12 @@ function renderPots() {
         pots[idx].dbInflationLinked = pots[idx].dbInflationLinked !== undefined ? pots[idx].dbInflationLinked : true;
       }
       if (nextType !== 'pension' && nextType !== 'db-pension') {
-        pots[idx].contribMode = 'pounds';
+        // Non-pension types have a single monthly contribution and no employer match.
+        // Carry over the real monthly £ amount (sum employer + convert % to £) so we don't
+        // silently reinterpret "7%" as "£7" or drop the employer part on a quick type cycle.
+        pots[idx].employeeContrib = Math.round(getMonthlyContrib(pots[idx]));
         pots[idx].employerContrib = 0;
+        pots[idx].contribMode = 'pounds';
       }
       if (hasCustomRate(nextType) && !pots[idx].customRate) {
         pots[idx].customRate = nextType === 'premium-bonds' ? 4.4 : 4;
@@ -2331,7 +2339,9 @@ let _addFormContribMode = 'pounds';
 
 function openAddForm(type, owner) {
   _addPotOwner = owner || 'you';
-  _addFormContribMode = 'pounds';
+  // Workplace pensions are almost always quoted as a % of salary with an employer match,
+  // so default pension pots to "% salary" to avoid the £7-vs-7% trap. Other types stay £.
+  _addFormContribMode = type === 'pension' ? 'percent' : 'pounds';
   // Move form into the correct section
   const targetSection = _addPotOwner === 'partner'
     ? document.getElementById('partnerSection')
@@ -2358,20 +2368,23 @@ function openAddForm(type, owner) {
   let html = '';
 
   if (type === 'pension') {
+    const isPct = _addFormContribMode === 'percent';
+    const unit = isPct ? '%' : '£';
+    const step = isPct ? '0.5' : '1';
     html = `
       <label class="pot-value-label" style="margin-top:8px">Monthly contributions</label>
       <div class="contrib-mode-toggle" id="newPotContribToggle">
-        <button type="button" class="contrib-mode-btn active" data-mode="pounds">£</button>
-        <button type="button" class="contrib-mode-btn" data-mode="percent">% salary</button>
+        <button type="button" class="contrib-mode-btn ${isPct ? '' : 'active'}" data-mode="pounds">£</button>
+        <button type="button" class="contrib-mode-btn ${isPct ? 'active' : ''}" data-mode="percent">% salary</button>
       </div>
       <div class="pot-contrib-row">
         <div class="pot-contrib-field">
-          <label id="newPotEmployeeLabel">You (£)</label>
-          <input type="number" min="0" step="1" id="newPotEmployee" value="0">
+          <label id="newPotEmployeeLabel">You (${unit})</label>
+          <input type="number" min="0" step="${step}" id="newPotEmployee" value="0">
         </div>
         <div class="pot-contrib-field">
-          <label id="newPotEmployerLabel">Employer (£)</label>
-          <input type="number" min="0" step="1" id="newPotEmployer" value="0">
+          <label id="newPotEmployerLabel">Employer (${unit})</label>
+          <input type="number" min="0" step="${step}" id="newPotEmployer" value="0">
         </div>
       </div>
     `;
@@ -2578,10 +2591,19 @@ function updateChart() {
   const labels = [];
   for (let y = 0; y <= years; y++) labels.push(currentAge + y);
 
+  const showReal = document.getElementById('inflationToggle') && document.getElementById('inflationToggle').checked;
+  const infl = getInflationRate();
+  const yAxisTitle = showReal ? "Value (£, today's money)" : 'Value (£)';
+
   const dcEntries = calcPots
     .map(pot => ({ pot, index: pots.indexOf(pot) }))
     .filter(entry => entry.pot.type !== 'db-pension');
-  const allYearData = dcEntries.map(entry => projectPotByYear(entry.pot, getYearsForPot(entry.pot, years), rate));
+  const allYearDataRaw = dcEntries.map(entry => projectPotByYear(entry.pot, getYearsForPot(entry.pot, years), rate));
+  // In "Inflation adjusted" mode, deflate each year by years-elapsed so the chart matches
+  // the summary/totals figures (value[y] is y years from now → divide by (1+infl)^y).
+  const allYearData = showReal
+    ? allYearDataRaw.map(arr => arr.map((v, y) => v / Math.pow(1 + infl, y)))
+    : allYearDataRaw;
 
   const datasets = allYearData.map((data, di) => {
     const { pot, index: i } = dcEntries[di];
@@ -2618,6 +2640,7 @@ function updateChart() {
   if (chart) {
     chart.data.labels = labels;
     chart.data.datasets = datasets;
+    chart.options.scales.y.title.text = yAxisTitle;
     chart.update();
   } else {
     const ctx = document.getElementById('growthChart').getContext('2d');
@@ -2632,7 +2655,10 @@ function updateChart() {
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: ctx => ctx.dataset.label + ': ' + fmt(ctx.parsed.y),
+              label: ctx => {
+                const real = document.getElementById('inflationToggle') && document.getElementById('inflationToggle').checked;
+                return ctx.dataset.label + ': ' + fmt(ctx.parsed.y) + (real ? ' (today\'s money)' : '');
+              },
             }
           }
         },
@@ -2644,7 +2670,7 @@ function updateChart() {
           },
           y: {
             stacked: false,
-            title: { display: true, text: 'Value (£)', color: getComputedStyle(document.body).getPropertyValue('--color-text-secondary').trim() },
+            title: { display: true, text: yAxisTitle, color: getComputedStyle(document.body).getPropertyValue('--color-text-secondary').trim() },
             ticks: {
               color: getComputedStyle(document.body).getPropertyValue('--color-text-secondary').trim(),
               callback: v => fmt(v),
@@ -3392,6 +3418,7 @@ document.getElementById('inflationToggle').addEventListener('change', () => {
   updateSummary();
   updateTotals();
   updateTabs();
+  updateChart();
   saveState();
 });
 
@@ -3400,6 +3427,7 @@ document.getElementById('inflationRate').addEventListener('input', () => {
   updateSummary();
   updateTotals();
   updateTabs();
+  updateChart();
   saveState();
 });
 
@@ -3495,8 +3523,14 @@ function updateContribEquiv() {
     const pot = pots[idx];
     if (!pot || pot.contribMode !== 'percent') return;
     const salary = pot.owner === 'partner' ? partnerSalary : primarySalary;
-    const monthly = ((pot.employeeContrib + pot.employerContrib) / 100) * salary / 12;
-    el.textContent = '= ' + fmt(monthly) + '/mo';
+    const contribPct = pot.employeeContrib + pot.employerContrib;
+    if (salary <= 0 && contribPct > 0) {
+      el.textContent = '⚠ Enter your salary above to apply these % contributions';
+      el.style.color = '#e6a23c';
+    } else {
+      el.textContent = '= ' + fmt((contribPct / 100) * salary / 12) + '/mo';
+      el.style.color = '';
+    }
   });
 }
 
