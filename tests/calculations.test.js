@@ -181,3 +181,19 @@ test('single mode excludes partner pots from calculation set', () => {
 test('State Pension constant matches current weekly full rate annualised', () => {
   approx(run('return STATE_PENSION;').result, 12547.60, 'State Pension annual amount');
 });
+
+test('marginal salary-sacrifice relief matches the four bands (income tax + employee NI)', () => {
+  const pct = expr => Math.round(run('return ' + expr + ';').result * 100);
+  approx(pct('marginalReliefAt(30000)'), 28, 'basic rate (20%) + NI (8%)');
+  approx(pct('marginalReliefAt(60000)'), 42, 'higher rate (40%) + NI (2%)');
+  approx(pct('marginalReliefAt(110000)'), 62, 'personal-allowance restoration zone');
+  approx(pct('marginalReliefAt(130000)'), 47, 'additional rate (45%) + NI (2%)');
+  // below the personal allowance there is no income tax or NI to relieve
+  approx(pct('marginalReliefAt(10000)'), 0, 'below the personal allowance');
+});
+
+test('employee NI applies 8% main and 2% upper bands', () => {
+  approx(run('return calcEmployeeNI(12570);').result, 0, 'no NI at the primary threshold');
+  approx(run('return calcEmployeeNI(50270);').result, 3016, '8% across the main band');
+  approx(run('return calcEmployeeNI(60000);').result, 3210.6, '8% main + 2% upper');
+});
