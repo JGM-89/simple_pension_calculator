@@ -1417,6 +1417,37 @@ h1 {
   .pots-grid, .summary-grid, .income-breakdown { grid-template-columns: 1fr; }
   .add-pot-buttons { flex-direction: column; }
 }
+
+/* ── Salary-sacrifice sweet spot ── */
+.ss-panel { max-width: 760px; margin: 8px 0 24px; }
+.ss-toggle { font-size: 0.95rem; font-weight: 600; color: var(--color-accent-green); background: none; border: none; cursor: pointer; padding: 6px 0; display: flex; align-items: center; gap: 6px; }
+.ss-toggle::before { content: '\25B6'; font-size: 0.6rem; display: inline-block; transition: transform .15s; }
+.ss-panel.open .ss-toggle::before { transform: rotate(90deg); }
+.ss-body { display: none; margin-top: 10px; padding: 16px; background: var(--color-surface); border: 0.5px solid var(--color-border); border-radius: 12px; }
+.ss-panel.open .ss-body { display: block; }
+.ss-controls { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; }
+.ss-select-label { font-size: 0.8rem; color: var(--color-text-secondary); }
+.ss-select { flex: 1; max-width: 300px; padding: 6px 8px; border: 0.5px solid var(--color-border); border-radius: 6px; background: var(--color-input-bg); color: var(--color-text-primary); font-size: 0.85rem; }
+.ss-row { display: flex; align-items: center; gap: 14px; margin-bottom: 1.25rem; }
+.ss-row label { font-size: 0.85rem; color: var(--color-text-secondary); white-space: nowrap; }
+.ss-row input[type=range] { flex: 1; accent-color: var(--color-accent-green); }
+.ss-row input[type=range]:disabled { opacity: 0.45; }
+.ss-val { font-size: 0.9rem; font-weight: 600; min-width: 120px; text-align: right; }
+.ss-amt { color: var(--color-text-secondary); font-size: 0.78rem; font-weight: 400; }
+.ss-barwrap { position: relative; margin: 1.5rem 0 0.5rem; }
+.ss-bar { display: flex; width: 100%; height: 48px; border-radius: 8px; overflow: hidden; font-size: 12px; }
+.ss-bar > div { display: flex; align-items: center; justify-content: center; }
+.ss-marker { position: absolute; top: -7px; bottom: -7px; width: 2px; background: var(--color-text-primary); }
+.ss-knob { position: absolute; top: -6px; left: -5px; width: 12px; height: 12px; border-radius: 50%; background: var(--color-text-primary); }
+.ss-axis { position: relative; height: 16px; font-size: 11.5px; color: var(--color-text-secondary); margin-bottom: 0.5rem; }
+.ss-note { font-size: 0.8rem; color: var(--color-text-secondary); margin: 0 0 1.25rem; }
+.ss-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.ss-card { background: var(--color-input-bg); border: 0.5px solid var(--color-border); border-radius: 8px; padding: 0.8rem 1rem; }
+.ss-card .l { font-size: 0.78rem; color: var(--color-text-secondary); }
+.ss-card .v { font-size: 1.35rem; font-weight: 600; margin-top: 3px; }
+.ss-card .s { font-size: 0.72rem; color: var(--color-text-secondary); margin-top: 2px; }
+.ss-dot { width: 11px; height: 11px; border-radius: 2px; display: inline-block; flex-shrink: 0; }
+.ss-warn { display: none; margin-top: 1rem; background: rgba(186,117,23,0.1); border: 1px solid #BA7517; border-radius: 8px; padding: 0.7rem 1rem; font-size: 0.8rem; line-height: 1.5; color: var(--color-text-primary); }
 </style>
 </head>
 <body>
@@ -1530,6 +1561,42 @@ h1 {
 <!-- Empty state -->
 <div id="emptyState" class="empty-state" style="display:none">
   <p>Add a pension, ISA, or other pot to get started.</p>
+</div>
+
+<!-- Salary-sacrifice sweet spot -->
+<div id="sweetSpotPanel" class="ss-panel" style="display:none">
+  <button class="ss-toggle" id="ssToggle" type="button">Salary-sacrifice sweet spot</button>
+  <div class="ss-body" id="ssBody">
+    <div class="ss-controls">
+      <label class="ss-select-label" for="ssPotSelect">Workplace pension</label>
+      <select id="ssPotSelect" class="ss-select"></select>
+    </div>
+    <div class="ss-row">
+      <label for="ssSlider">Salary sacrifice</label>
+      <input type="range" id="ssSlider" min="0" max="100" step="0.5" value="0">
+      <span class="ss-val"><span id="ssSacVal">0%</span> <span class="ss-amt" id="ssSacAmt"></span></span>
+    </div>
+    <div class="ss-barwrap" id="ssBarWrap">
+      <div class="ss-bar" id="ssBar"></div>
+      <div class="ss-marker" id="ssMarker" style="left:0%"><div class="ss-knob"></div></div>
+    </div>
+    <div class="ss-axis" id="ssAxis"></div>
+    <p class="ss-note" id="ssNote"></p>
+    <div class="ss-grid">
+      <div class="ss-card">
+        <div class="l">Relief on your last pound</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:3px;">
+          <span class="ss-dot" id="ssReliefDot"></span>
+          <span class="v" id="ssRelief" style="margin:0;">—</span>
+        </div>
+        <div class="s" id="ssReliefLab"></div>
+      </div>
+      <div class="ss-card"><div class="l">Adjusted income</div><div class="v" id="ssAdj">—</div><div class="s">after sacrifice</div></div>
+      <div class="ss-card"><div class="l">Into pension</div><div class="v" id="ssPen">—</div><div class="s" id="ssPenLab">a month (you + employer)</div></div>
+      <div class="ss-card"><div class="l">Take-home</div><div class="v" id="ssTh">—</div><div class="s">a month</div></div>
+    </div>
+    <div class="ss-warn" id="ssWarn"></div>
+  </div>
 </div>
 
 <!-- 4. Chart -->
@@ -1666,6 +1733,43 @@ function calcIncomeTaxBreakdown(taxableIncome) {
   const total = basicTax + higherTax + additionalTax;
   return { pa, paUsed, tapered, basicTaxable, basicTax, higherTaxable, higherTax, additionalTaxable, additionalTax, total };
 }
+
+// ── Salary sacrifice / marginal relief ──
+const PENSION_ANNUAL_ALLOWANCE = 60000;
+const NI_PRIMARY_THRESHOLD = 12570;   // employee NI starts
+const NI_UPPER_EARNINGS = 50270;      // 8% up to here, 2% above
+const NI_MAIN_RATE = 0.08;
+const NI_UPPER_RATE = 0.02;
+
+// Employee (Class 1) National Insurance, 2026/27. On salary sacrifice the NI is charged on
+// the adjusted income (salary minus sacrifice), which is the whole point of sacrificing.
+function calcEmployeeNI(income) {
+  if (income <= NI_PRIMARY_THRESHOLD) return 0;
+  return Math.max(0, Math.min(income, NI_UPPER_EARNINGS) - NI_PRIMARY_THRESHOLD) * NI_MAIN_RATE
+       + Math.max(0, income - NI_UPPER_EARNINGS) * NI_UPPER_RATE;
+}
+
+// Take-home pay on an adjusted income (after income tax and employee NI).
+function takeHomePay(adjustedIncome) {
+  return adjustedIncome - calcIncomeTax(adjustedIncome) - calcEmployeeNI(adjustedIncome);
+}
+
+// Marginal relief on the next pound sacrificed at a given adjusted income, computed
+// numerically from take-home so it stays correct in every band — including the 62%
+// personal-allowance-restoration zone. A £100 forward difference reproduces the bands exactly.
+function marginalReliefAt(adjustedIncome, delta = 100) {
+  const hi = takeHomePay(adjustedIncome);
+  const lo = takeHomePay(Math.max(0, adjustedIncome - delta));
+  return 1 - (hi - lo) / delta;
+}
+
+// Marginal-relief bands (income tax + employee NI) for the staircase visual.
+const MARGINAL_RELIEF_BANDS = [
+  { from: 12570,  to: 50270,             rate: 28, color: '#B4B2A9', txt: '#2C2C2A' },
+  { from: 50270,  to: 100000,            rate: 42, color: '#B4B2A9', txt: '#2C2C2A' },
+  { from: 100000, to: 125140,            rate: 62, color: '#639922', txt: '#173404', standout: true },
+  { from: 125140, to: Number.POSITIVE_INFINITY, rate: 47, color: '#97C459', txt: '#27500A' },
+];
 
 function calcCapitalGainsTax(gains, incomeTaxBreakdown) {
   if (gains <= 0) return { taxableGains: 0, basicGains: 0, higherGains: 0, total: 0 };
@@ -3536,6 +3640,7 @@ function updateContribEquiv() {
 
 function updateWithoutRerender() {
   updateEmptyState();
+  updateSweetSpot();
   if (getCalculationPots().length === 0) { saveState(); return; }
   updateContribEquiv();
   updateChart();
@@ -3549,6 +3654,7 @@ function updateWithoutRerender() {
 function updateAll() {
   renderPots();
   updateEmptyState();
+  updateSweetSpot();
   if (getCalculationPots().length === 0) { saveState(); return; }
   updateChart();
   updateLegend();
@@ -3556,6 +3662,174 @@ function updateAll() {
   updateTotals();
   updateTabs();
   saveState();
+}
+
+// ── Salary-sacrifice sweet spot panel ──
+const ssPanel = document.getElementById('sweetSpotPanel');
+const ssBar = document.getElementById('ssBar');
+const ssMarker = document.getElementById('ssMarker');
+const ssAxis = document.getElementById('ssAxis');
+const ssSlider = document.getElementById('ssSlider');
+const ssPotSelect = document.getElementById('ssPotSelect');
+let _ssSelectedIndex = null; // global index into `pots`
+
+function ssEligiblePots() {
+  return pots
+    .map((pot, index) => ({ pot, index }))
+    .filter(e => e.pot.type === 'pension' && (isCoupleMode() || e.pot.owner !== 'partner'));
+}
+function ssSalaryFor(pot) {
+  return pot.owner === 'partner'
+    ? (parseFloat(document.getElementById('partnerSalary').dataset.raw) || 0)
+    : (parseFloat(salaryInput.dataset.raw) || 0);
+}
+function ssAnnualEmployer(pot, salary) {
+  return pot.contribMode === 'percent' ? (pot.employerContrib / 100) * salary : pot.employerContrib * 12;
+}
+function ssAnnualSacrifice(pot, salary, v) {
+  return pot.contribMode === 'percent' ? (v / 100) * salary : v * 12;
+}
+function ssSelectedEntry() {
+  const list = ssEligiblePots();
+  if (!list.length) return null;
+  let entry = list.find(e => e.index === _ssSelectedIndex);
+  if (!entry) { entry = list[0]; _ssSelectedIndex = entry.index; }
+  return entry;
+}
+function ssConfigureSlider(pot) {
+  const salary = ssSalaryFor(pot);
+  const isPct = pot.contribMode === 'percent';
+  let max = isPct
+    ? (salary > 0 ? (PENSION_ANNUAL_ALLOWANCE / salary) * 100 - pot.employerContrib : 0)
+    : (PENSION_ANNUAL_ALLOWANCE / 12 - pot.employerContrib);
+  max = Math.max(0, max);
+  const cur = pot.employeeContrib || 0;
+  ssSlider.step = isPct ? '0.5' : '1';
+  ssSlider.min = '0';
+  ssSlider.max = String(Math.round(Math.max(max, cur) * 100) / 100);
+  ssSlider.value = String(cur);
+  ssSlider.disabled = (isPct && salary <= 0) || max <= 0;
+}
+function updateSweetSpot() {
+  if (!ssPanel) return;
+  const list = ssEligiblePots();
+  if (!list.length) { ssPanel.style.display = 'none'; return; }
+  ssPanel.style.display = '';
+  const entry = ssSelectedEntry();
+  ssPotSelect.innerHTML = list.map(e => {
+    const tag = e.pot.owner === 'partner' ? ' (partner)' : (isCoupleMode() ? ' (you)' : '');
+    return `<option value="${e.index}"${e.index === entry.index ? ' selected' : ''}>${escapeHTML(e.pot.name || 'Pension')}${tag}</option>`;
+  }).join('');
+  // Don't reconfigure the slider while the user is dragging it.
+  if (document.activeElement !== ssSlider) ssConfigureSlider(entry.pot);
+  renderSweetSpot();
+}
+function renderSweetSpot() {
+  const entry = ssSelectedEntry();
+  if (!entry) return;
+  const pot = entry.pot;
+  const salary = ssSalaryFor(pot);
+  const isPct = pot.contribMode === 'percent';
+  const warn = document.getElementById('ssWarn');
+  const set = (id, txt) => { document.getElementById(id).textContent = txt; };
+
+  if (salary <= 0) {
+    set('ssSacVal', '—'); set('ssSacAmt', '');
+    ssBar.innerHTML = ''; ssAxis.innerHTML = ''; ssMarker.style.display = 'none';
+    set('ssNote', '');
+    ['ssRelief', 'ssAdj', 'ssPen', 'ssTh'].forEach(id => set(id, '—'));
+    set('ssReliefLab', '');
+    document.getElementById('ssReliefDot').style.background = 'transparent';
+    warn.style.display = 'block';
+    warn.textContent = '⚠ Enter ' + (pot.owner === 'partner' ? "your partner's" : 'your') + ' annual salary above to see the salary-sacrifice relief bands.';
+    return;
+  }
+  ssMarker.style.display = '';
+
+  const v = parseFloat(ssSlider.value) || 0;
+  const annualSac = ssAnnualSacrifice(pot, salary, v);
+  const annualEmp = ssAnnualEmployer(pot, salary);
+  const adjusted = Math.max(0, salary - annualSac);
+
+  set('ssSacVal', isPct ? (v + '%') : (fmt(v) + '/mo'));
+  set('ssSacAmt', isPct ? (fmt(annualSac / 12) + '/mo') : '');
+
+  // Staircase: axis spans [12570, salary]; render only bands that overlap it.
+  const axisStart = TAX_PERSONAL_ALLOWANCE;
+  const axisEnd = Math.max(salary, axisStart + 1);
+  const span = axisEnd - axisStart;
+  const fmtK = n => (n >= 1000 ? '£' + Math.round(n / 1000) + 'k' : fmt(n));
+  let barHTML = '', has62 = false;
+  MARGINAL_RELIEF_BANDS.forEach(b => {
+    const from = Math.max(b.from, axisStart), to = Math.min(b.to, axisEnd);
+    if (to <= from) return;
+    if (b.standout) has62 = true;
+    const width = (to - from) / span * 100;
+    barHTML += `<div style="width:${width}%;background:${b.color};color:${b.txt};${b.standout ? 'font-weight:600;' : ''}">${b.rate}%</div>`;
+  });
+  ssBar.innerHTML = barHTML;
+
+  let axisHTML = `<span style="position:absolute;left:0;">${fmtK(axisStart)}</span>`;
+  [50270, 100000, 125140].forEach(edge => {
+    if (edge > axisStart && edge < axisEnd) {
+      const left = (edge - axisStart) / span * 100;
+      axisHTML += `<span style="position:absolute;left:${left}%;transform:translateX(-50%);">${edge === 125140 ? '£125,140' : fmtK(edge)}</span>`;
+    }
+  });
+  axisHTML += `<span style="position:absolute;right:0;">${fmtK(axisEnd)}</span>`;
+  ssAxis.innerHTML = axisHTML;
+
+  let markLeft = (adjusted - axisStart) / span * 100;
+  ssMarker.style.left = Math.max(0, Math.min(100, markLeft)) + '%';
+
+  set('ssNote', has62
+    ? 'The bright green band is the prize: every pound sacrificed there gets 62% relief because it restores your personal allowance.'
+    : 'Each band shows the relief — income tax plus NI saved — on the last pound you sacrifice at that income.');
+
+  const reliefPct = Math.round(marginalReliefAt(adjusted) * 100);
+  const band = MARGINAL_RELIEF_BANDS.find(b => adjusted > b.from && adjusted <= b.to);
+  set('ssRelief', reliefPct + '%');
+  document.getElementById('ssReliefDot').style.background = band ? band.color : 'var(--color-text-secondary)';
+  let lab;
+  if (band && band.standout) lab = 'the sweet spot';
+  else if (reliefPct >= 47) lab = 'additional rate';
+  else if (reliefPct >= 42) lab = 'higher rate';
+  else if (reliefPct >= 28) lab = 'basic rate + NI';
+  else lab = 'below the tax threshold';
+  set('ssReliefLab', lab);
+
+  set('ssAdj', fmt(adjusted));
+  set('ssPen', fmt((annualSac + annualEmp) / 12));
+  set('ssTh', fmt(takeHomePay(adjusted) / 12));
+
+  const total = annualSac + annualEmp;
+  if (total > PENSION_ANNUAL_ALLOWANCE) {
+    warn.style.display = 'block';
+    warn.innerHTML = '⚠ These contributions (' + fmt(total) + '/yr including the employer’s) exceed the £60,000 annual allowance. Only go above it if you have unused allowance to carry forward from earlier years.';
+  } else {
+    warn.style.display = 'none';
+  }
+}
+if (ssPanel) {
+  ssSlider.addEventListener('input', () => {
+    const entry = ssSelectedEntry();
+    if (!entry) return;
+    entry.pot.employeeContrib = parseFloat(ssSlider.value) || 0;
+    const cardInput = document.querySelector(`.employee-contrib-input[data-index="${entry.index}"]`);
+    if (cardInput) cardInput.value = ssSlider.value;
+    renderSweetSpot();
+    updateWithoutRerender();
+  });
+  ssPotSelect.addEventListener('change', () => {
+    _ssSelectedIndex = parseInt(ssPotSelect.value);
+    updateSweetSpot();
+  });
+  document.getElementById('ssToggle').addEventListener('click', () => {
+    const open = !ssPanel.classList.contains('open');
+    ssPanel.classList.toggle('open', open);
+    try { localStorage.setItem('ssPanelOpen', open ? '1' : '0'); } catch (e) {}
+  });
+  try { if (localStorage.getItem('ssPanelOpen') === '1') ssPanel.classList.add('open'); } catch (e) {}
 }
 
 // ── Init ──
